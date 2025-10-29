@@ -1,0 +1,29 @@
+Level(
+    id: 1,
+    name: "First Steps",
+    description: "Connect P and Q to prove R",
+    theorem: "(assert (=> (and P Q) R))",
+    initial_state: BoardState(
+        width: 10,
+        height: 10,
+        pieces: [
+            Assumption(
+                formula: "P",
+                position: (2, 5),
+            ),
+            Assumption(
+                formula: "Q",
+                position: (4, 5),
+            ),
+            Goal(
+                formula: "R",
+                position: (8, 5),
+            ),
+            // Player needs to place AND gate and connect
+        ],
+    ),
+    goal_state: ConnectNodes(
+        start: (2, 5),
+        end: (8, 5),
+    ),
+)

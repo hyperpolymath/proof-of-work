@@ -1,0 +1,42 @@
+[package]
+name = "proof-of-work"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Game engine
+bevy = { version = "0.13", features = ["dynamic_linking"] }
+bevy_egui = "0.26"
+
+# Verification
+z3 = { version = "0.12", features = ["static-link-z3"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ron = "0.8"
+
+# Steam integration
+steamworks = "0.11"
+
+# Networking
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Hashing for signatures
+sha2 = "0.10"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+opt-level = 3
