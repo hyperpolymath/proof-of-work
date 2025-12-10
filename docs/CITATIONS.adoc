@@ -1,0 +1,36 @@
+= proof-of-work - Citation Guide
+:toc:
+
+== BibTeX
+
+[source,bibtex]
+----
+@software{proof-of-work_2025,
+  author = {Polymath, Hyper},
+  title = {proof-of-work},
+  year = {2025},
+  url = {https://github.com/hyperpolymath/proof-of-work},
+  license = {AGPL-3.0-or-later}
+}
+----
+
+== Harvard Style
+
+Polymath, H. (2025) _proof-of-work_ [Computer software]. Available at: https://github.com/hyperpolymath/proof-of-work
+
+== OSCOLA
+
+Hyper Polymath, 'proof-of-work' (2025) <https://github.com/hyperpolymath/proof-of-work>
+
+== MLA
+
+Polymath, Hyper. "proof-of-work." 2025, github.com/hyperpolymath/proof-of-work.
+
+== APA 7
+
+Polymath, H. (2025). _proof-of-work_ [Computer software]. GitHub. https://github.com/hyperpolymath/proof-of-work
+
+== See Also
+
+* link:../CITATION.cff[CITATION.cff]
+* link:../codemeta.json[codemeta.json]
