@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 # Game engine
-bevy = { version = "0.17", features = ["dynamic_linking"] }
-bevy_egui = "0.26"
+bevy = { version = "0.13", features = ["dynamic_linking"] }
+bevy_egui = "0.38"
 
 # Verification
-z3 = { version = "0.12", features = ["static-link-z3"] }
+z3 = { version = "0.19", features = ["static-link-z3"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -17,7 +17,7 @@ serde_json = "1"
 ron = "0.8"
 
 # Steam integration
-steamworks = "0.11"
+steamworks = "0.12"
 
 # Networking
 reqwest = { version = "0.11", features = ["json"] }
