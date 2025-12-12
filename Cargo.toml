@@ -17,7 +17,7 @@ serde_json = "1"
 ron = "0.8"
 
 # Steam integration
-steamworks = "0.11"
+steamworks = "0.12"
 
 # Networking
 reqwest = { version = "0.11", features = ["json"] }
