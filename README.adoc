@@ -1,1 +1,123 @@
 = proof-of-work
+:toc:
+:toc-title: Contents
+:sectnums:
+
+image:https://img.shields.io/badge/Rust-2021-orange.svg[Rust 2021]
+image:https://img.shields.io/badge/Bevy-0.13-blue.svg[Bevy 0.13]
+image:https://img.shields.io/badge/License-MIT-green.svg[MIT License]
+image:https://img.shields.io/badge/RSR-Tier%201-gold.svg[RSR Tier 1]
+
+**A puzzle game where solutions are cryptographically verified - prove your work, literally.**
+
+== Overview
+
+proof-of-work is a puzzle game built with https://bevyengine.org/[Bevy] where players solve logic puzzles. Solutions are verified using https://github.com/Z3Prover/z3[Z3 SMT solver], ensuring that completed puzzles are mathematically valid.
+
+=== Features
+
+* **Bevy Engine** - Modern ECS-based game engine
+* **Z3 Verification** - Solutions verified by SMT solver
+* **Steam Integration** - Achievements, leaderboards, cloud saves
+* **Multiplayer** - Share puzzles and compete on solution times
+* **Level Editor** - Create and share custom puzzles
+
+== Requirements
+
+* Rust 1.70+
+* Z3 solver (linked statically)
+* Steam SDK (optional, for Steam features)
+
+== Installation
+
+[source,bash]
+----
+# Clone the repository
+git clone https://github.com/hyperpolymath/proof-of-work.git
+cd proof-of-work
+
+# Build and run (debug mode with fast compile)
+cargo run
+
+# Build release version
+cargo build --release
+----
+
+== Architecture
+
+[source]
+----
+proof-of-work/
+├── src/
+│   ├── main.rs          # Entry point
+│   ├── game/            # Game logic and puzzles
+│   ├── ui/              # UI components (bevy_egui)
+│   ├── verification/    # Z3 solver integration
+│   ├── network/         # Multiplayer and sharing
+│   └── steam/           # Steam SDK integration
+├── levels/              # Puzzle definitions
+└── assets/              # Game assets
+----
+
+== Puzzle Verification
+
+Each puzzle solution is verified using Z3:
+
+[source,rust]
+----
+// Puzzles define constraints
+let puzzle = Puzzle::new()
+    .add_constraint("x + y = 10")
+    .add_constraint("x > y");
+
+// Solutions are verified mathematically
+let solution = player_solution();
+let verified = puzzle.verify(&solver, &solution);
+----
+
+== Development
+
+[source,bash]
+----
+# Run with hot reloading (dynamic linking)
+cargo run
+
+# Run tests
+cargo test
+
+# Check formatting
+cargo fmt --check
+
+# Run clippy
+cargo clippy
+----
+
+== Steam Features
+
+When built with Steam support:
+
+* **Achievements** - Unlock achievements for completing puzzles
+* **Leaderboards** - Compete for fastest solve times
+* **Workshop** - Share custom puzzles
+* **Cloud Saves** - Sync progress across devices
+
+== Roadmap
+
+* [ ] Core puzzle mechanics
+* [ ] Z3 integration for verification
+* [ ] Level editor
+* [ ] Steam Workshop integration
+* [ ] Multiplayer puzzle races
+
+== License
+
+MIT License - See link:LICENSE.txt[LICENSE.txt] for details.
+
+== Contributing
+
+Contributions welcome! Please read link:CONTRIBUTING.md[CONTRIBUTING.md] first.
+
+== Related Projects
+
+* https://bevyengine.org/[Bevy Engine] - Game engine
+* https://github.com/Z3Prover/z3[Z3 Prover] - SMT solver
