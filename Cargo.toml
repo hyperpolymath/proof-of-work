@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 # Game engine
 bevy = { version = "0.13", features = ["dynamic_linking"] }
-bevy_egui = "0.26"
+bevy_egui = "0.38"
 
 # Verification
 z3 = { version = "0.12", features = ["static-link-z3"] }
