@@ -9,7 +9,7 @@ bevy = { version = "0.13", features = ["dynamic_linking"] }
 bevy_egui = "0.38"
 
 # Verification
-z3 = { version = "0.12", features = ["static-link-z3"] }
+z3 = { version = "0.19", features = ["static-link-z3"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
