@@ -1,14 +1,19 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 name: Rust CI
 on: [push, pull_request]
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -Dwarnings
 
+permissions: read-all
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -28,8 +33,10 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-audit
         run: cargo install cargo-audit
@@ -40,8 +47,10 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: dtolnay/rust-toolchain@stable
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
