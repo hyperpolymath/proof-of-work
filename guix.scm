@@ -1,4 +1,6 @@
-;; proof-of-work - Guix Package Definition
+;; SPDX-License-Identifier: MIT OR AGPL-3.0-or-later
+;; SPDX-FileCopyrightText: 2025 Jonathan D.A. Jewell
+;;; guix.scm — proof-of-work Guix Package Definition
 ;; Run: guix shell -D -f guix.scm
 
 (use-modules (guix packages)
@@ -16,8 +18,10 @@
                         #:recursive? #t
                         #:select? (git-predicate ".")))
     (build-system cargo-build-system)
-    (synopsis "Rust application")
-    (description "Rust application - part of the RSR ecosystem.")
+    (synopsis "Puzzle game with cryptographic solution verification")
+    (description "A puzzle game where solutions are cryptographically verified using
+Z3 SMT solver integration.  Features include Steam integration, multiplayer support,
+level editor, and puzzle sharing.")
     (home-page "https://github.com/hyperpolymath/proof-of-work")
     (license license:agpl3+)))
 
