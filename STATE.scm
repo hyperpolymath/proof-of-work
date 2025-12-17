@@ -3,7 +3,7 @@
 ;; SPDX-FileCopyrightText: 2025 Jonathan D.A. Jewell
 
 (define metadata
-  '((version . "0.1.0") (updated . "2025-12-15") (project . "proof-of-work")))
+  '((version . "0.1.0") (updated . "2025-12-17") (project . "proof-of-work")))
 
 (define current-position
   '((phase . "v0.1 - Initial Setup")
@@ -19,7 +19,9 @@
 (define session-history
   '((snapshots ((date . "2025-12-15") (session . "initial") (notes . "SCM files added"))
                ((date . "2025-12-15") (session . "security-fixes")
-                (notes . "OpenSSF Scorecard fixes: SHA-pinned actions, fixed CodeQL matrix, removed duplicate workflow")))))
+                (notes . "OpenSSF Scorecard fixes: SHA-pinned actions, fixed CodeQL matrix, removed duplicate workflow"))
+               ((date . "2025-12-17") (session . "scm-security-review")
+                (notes . "Fixed security.txt expiry, META.scm syntax, added SPDX to guix.scm, created flake.nix")))))
 
 (define state-summary
-  '((project . "proof-of-work") (completion . 40) (blockers . 0) (updated . "2025-12-15")))
+  '((project . "proof-of-work") (completion . 45) (blockers . 0) (updated . "2025-12-17")))
