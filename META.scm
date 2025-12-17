@@ -22,3 +22,11 @@
 
 (define design-rationale
   '((why-rsr "RSR ensures consistency, security, and maintainability.")))
+
+;; CROSS-PLATFORM STATUS (2025-12-17)
+(cross-platform-status
+  (sync-status "needs-review")
+  (gitlab-url "https://gitlab.com/hyperpolymath/proof-of-work")
+  (instructions
+    ";; git remote add gitlab <gitlab-url>"
+    ";; git fetch gitlab && git diff main gitlab/main"))
