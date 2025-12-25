@@ -20,7 +20,7 @@ ron = "0.12"
 steamworks = "0.12"
 
 # Networking
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 # Hashing for signatures
