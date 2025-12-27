@@ -10,6 +10,8 @@ use std::time::Instant;
 
 pub use pieces::*;
 
+use crate::ui::{PlaceablePiece, SelectedPieceType};
+
 // Level definition
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Level {
