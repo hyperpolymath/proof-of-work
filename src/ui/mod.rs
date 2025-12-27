@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
 use crate::game::{CurrentLevel, PlaceablePiece, PlayerStats, SelectedPieceType};
-use crate::GameState;
+use crate::states::GameState;
 
 /// Main menu system - renders the start screen
 pub fn main_menu_system(mut contexts: EguiContexts, mut next_state: ResMut<NextState<GameState>>) {
@@ -31,7 +31,31 @@ pub fn main_menu_system(mut contexts: EguiContexts, mut next_state: ResMut<NextS
                 )
                 .clicked()
             {
+                next_state.set(GameState::LevelSelect);
+            }
+
+            ui.add_space(15.0);
+
+            if ui
+                .add_sized(
+                    [200.0, 40.0],
+                    egui::Button::new(egui::RichText::new("Quick Play").size(18.0)),
+                )
+                .clicked()
+            {
                 next_state.set(GameState::Playing);
+            }
+
+            ui.add_space(15.0);
+
+            if ui
+                .add_sized(
+                    [200.0, 40.0],
+                    egui::Button::new(egui::RichText::new("Level Editor").size(18.0)),
+                )
+                .clicked()
+            {
+                next_state.set(GameState::Editor);
             }
 
             ui.add_space(20.0);
@@ -43,7 +67,7 @@ pub fn main_menu_system(mut contexts: EguiContexts, mut next_state: ResMut<NextS
                     .weak(),
             );
 
-            ui.add_space(100.0);
+            ui.add_space(60.0);
 
             ui.label(egui::RichText::new("Controls:").size(14.0).strong());
             ui.label("Click pieces to select, drag to move");

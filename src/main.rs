@@ -2,11 +2,17 @@
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
+use std::path::PathBuf;
 
+mod editor;
 mod game;
 mod game_systems;
+mod levels;
+mod states;
 mod ui;
 mod verification;
+
+pub use states::GameState;
 
 #[cfg(feature = "network")]
 mod network;
@@ -14,7 +20,9 @@ mod network;
 #[cfg(feature = "steam")]
 mod steam;
 
+use editor::{EditorState, SaveLevelEvent, TestLevelEvent};
 use game::{CurrentLevel, PlayerStats, SelectedPieceType};
+use levels::LevelPackManager;
 use verification::ExportedProof;
 
 #[cfg(feature = "steam")]
@@ -62,7 +70,19 @@ fn main() {
     .insert_resource(PlayerStats::default())
 
     // Selected piece type resource
-    .insert_resource(SelectedPieceType::default());
+    .insert_resource(SelectedPieceType::default())
+
+    // Level pack manager
+    .insert_resource(LevelPackManager::new(
+        PathBuf::from("./data/packs")
+    ))
+
+    // Editor state
+    .insert_resource(EditorState::default())
+
+    // Editor events (messages in Bevy 0.17)
+    .add_message::<TestLevelEvent>()
+    .add_message::<SaveLevelEvent>();
 
     // Insert Steam as a resource (if available)
     #[cfg(feature = "steam")]
@@ -88,13 +108,28 @@ fn main() {
 
     app
     // Startup systems (run once at launch)
-    .add_systems(Startup, setup_camera)
+    .add_systems(Startup, (setup_camera, levels::ui::init_level_packs))
 
     // Systems that run every frame in MainMenu state
     .add_systems(Update, (
         ui::main_menu_system,
         ui::handle_menu_input,
     ).run_if(in_state(GameState::MainMenu)))
+
+    // Level select state
+    .add_systems(Update, levels::ui::level_select_ui_system.run_if(in_state(GameState::LevelSelect)))
+    .add_systems(OnExit(GameState::LevelSelect), levels::ui::save_level_progress)
+
+    // Editor state
+    .add_systems(OnEnter(GameState::Editor), editor::ui::spawn_editor_grid)
+    .add_systems(Update, (
+        editor::ui::editor_ui_system,
+        editor::ui::editor_input_system,
+        editor::ui::update_editor_pieces,
+        editor::ui::handle_test_level,
+        editor::ui::handle_save_level,
+    ).run_if(in_state(GameState::Editor)))
+    .add_systems(OnExit(GameState::Editor), editor::ui::cleanup_editor)
 
     // Systems when entering Playing state
     .add_systems(OnEnter(GameState::Playing), (
@@ -133,16 +168,6 @@ fn main() {
     .run();
 }
 
-// Game states
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-pub enum GameState {
-    #[default]
-    MainMenu,
-    Playing,
-    LevelComplete,
-    Settings,
-    Leaderboard,
-}
 
 // Startup systems
 fn setup_camera(mut commands: Commands) {

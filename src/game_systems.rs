@@ -8,7 +8,7 @@ use crate::game::{
     CurrentLevel, GameEntity, Level, LogicPiece, PlaceablePiece, PlayerCursor, PlayerPlaced,
     PlayerStats, SelectedPieceType, BoardState, GoalCondition, PieceBundle,
 };
-use crate::GameState;
+use crate::states::GameState;
 
 // Load level system
 pub fn load_level(mut commands: Commands, mut stats: ResMut<PlayerStats>) {
