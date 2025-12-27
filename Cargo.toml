@@ -3,25 +3,48 @@ name = "proof-of-work"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["z3-verify"]
+# Full features for production builds
+full = ["z3-verify", "steam", "network"]
+# Z3 verification (requires libz3-dev)
+z3-verify = ["dep:z3"]
+# Steam integration
+steam = ["dep:steamworks"]
+# Network features
+network = ["dep:reqwest", "dep:tokio"]
+# Headless mode for testing without display
+headless = []
+
 [dependencies]
-# Game engine
-bevy = { version = "0.17", features = ["dynamic_linking"] }
+# Game engine - use minimal features
+bevy = { version = "0.17", default-features = false, features = [
+    "bevy_asset",
+    "bevy_state",
+    "bevy_winit",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_core_pipeline",
+    "bevy_log",
+    "x11",
+    "multi_threaded",
+] }
 bevy_egui = "0.38"
 
-# Verification
-z3 = { version = "0.19", features = ["static-link-z3"] }
+# Verification - optional, requires system libz3
+z3 = { version = "0.19", features = ["static-link-z3"], optional = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ron = "0.12"
 
-# Steam integration
-steamworks = "0.12"
+# Steam integration - optional
+steamworks = { version = "0.12", optional = true }
 
-# Networking
-reqwest = { version = "0.12", features = ["json"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+# Networking - optional
+reqwest = { version = "0.12", features = ["json"], optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }
 
 # Hashing for signatures
 sha2 = "0.10"
@@ -40,3 +63,12 @@ opt-level = 3
 lto = "thin"
 codegen-units = 1
 opt-level = 3
+
+[[bin]]
+name = "proof-of-work"
+path = "src/main.rs"
+
+# Library for testing logic without UI
+[lib]
+name = "proof_of_work"
+path = "src/lib.rs"

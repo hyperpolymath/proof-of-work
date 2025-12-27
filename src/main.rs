@@ -2,20 +2,36 @@
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
+use std::path::PathBuf;
 
+mod editor;
 mod game;
-mod verification;
+mod game_systems;
+mod levels;
+mod states;
 mod ui;
-mod steam;
+mod verification;
+
+pub use states::GameState;
+
+#[cfg(feature = "network")]
 mod network;
 
-use game::{CurrentLevel, PlayerCursor, PlayerStats};
-use steam::SteamManager;
+#[cfg(feature = "steam")]
+mod steam;
+
+use editor::{EditorState, SaveLevelEvent, TestLevelEvent};
+use game::{CurrentLevel, PlayerStats, SelectedPieceType};
+use levels::LevelPackManager;
 use verification::ExportedProof;
 
+#[cfg(feature = "steam")]
+use steam::SteamManager;
+
 fn main() {
-    // Initialize Steam first (before Bevy)
-    let steam_manager = match SteamManager::new() {
+    // Initialize Steam first (before Bevy) - only if feature enabled
+    #[cfg(feature = "steam")]
+    let steam_manager: Option<SteamManager> = match SteamManager::new() {
         Ok(steam) => {
             info!("Steam initialized successfully");
             info!("  Username: {}", steam.get_username());
@@ -37,7 +53,7 @@ fn main() {
     .add_plugins(DefaultPlugins.set(WindowPlugin {
         primary_window: Some(Window {
             title: "Proof of Work - Logic Puzzle Game".into(),
-            resolution: (1280.0, 720.0).into(),
+            resolution: (1280, 720).into(),
             resizable: true,
             ..default()
         }),
@@ -45,10 +61,7 @@ fn main() {
     }))
 
     // Egui plugin for UI
-    .add_plugins(EguiPlugin)
-
-    // Insert Steam as a resource (if available)
-    .insert_resource(steam_manager)
+    .add_plugins(EguiPlugin::default())
 
     // Initialize game state
     .init_state::<GameState>()
@@ -56,14 +69,46 @@ fn main() {
     // Player stats resource
     .insert_resource(PlayerStats::default())
 
-    // Network client resource (will be initialized after Steam ID is available)
-    .insert_resource(network::NetworkClient::new("".to_string()))
+    // Selected piece type resource
+    .insert_resource(SelectedPieceType::default())
 
-    // Startup systems (run once at launch)
-    .add_systems(Startup, (
-        setup_camera,
-        initialize_network_client,
+    // Level pack manager
+    .insert_resource(LevelPackManager::new(
+        PathBuf::from("./data/packs")
     ))
+
+    // Editor state
+    .insert_resource(EditorState::default())
+
+    // Editor events (messages in Bevy 0.17)
+    .add_message::<TestLevelEvent>()
+    .add_message::<SaveLevelEvent>();
+
+    // Insert Steam as a resource (if available)
+    #[cfg(feature = "steam")]
+    app.insert_resource(steam_manager);
+
+    // Network client resource
+    #[cfg(feature = "network")]
+    {
+        #[cfg(feature = "steam")]
+        {
+            let steam: Option<&SteamManager> = app.world().get_resource();
+            if let Some(steam) = steam {
+                let steam_id = steam.get_steam_id();
+                let api_key = format!("steam_{}", steam_id.raw());
+                app.insert_resource(network::NetworkClient::new(api_key));
+            } else {
+                app.insert_resource(network::NetworkClient::new("offline_mode".to_string()));
+            }
+        }
+        #[cfg(not(feature = "steam"))]
+        app.insert_resource(network::NetworkClient::new("offline_mode".to_string()));
+    }
+
+    app
+    // Startup systems (run once at launch)
+    .add_systems(Startup, (setup_camera, levels::ui::init_level_packs))
 
     // Systems that run every frame in MainMenu state
     .add_systems(Update, (
@@ -71,28 +116,44 @@ fn main() {
         ui::handle_menu_input,
     ).run_if(in_state(GameState::MainMenu)))
 
+    // Level select state
+    .add_systems(Update, levels::ui::level_select_ui_system.run_if(in_state(GameState::LevelSelect)))
+    .add_systems(OnExit(GameState::LevelSelect), levels::ui::save_level_progress)
+
+    // Editor state
+    .add_systems(OnEnter(GameState::Editor), editor::ui::spawn_editor_grid)
+    .add_systems(Update, (
+        editor::ui::editor_ui_system,
+        editor::ui::editor_input_system,
+        editor::ui::update_editor_pieces,
+        editor::ui::handle_test_level,
+        editor::ui::handle_save_level,
+    ).run_if(in_state(GameState::Editor)))
+    .add_systems(OnExit(GameState::Editor), editor::ui::cleanup_editor)
+
     // Systems when entering Playing state
     .add_systems(OnEnter(GameState::Playing), (
-        game::load_level,
-        game::spawn_pieces,
-        ui::setup_game_ui,
+        game_systems::load_level,
+        game_systems::spawn_pieces,
     ).chain())
 
     // Systems that run every frame in Playing state
     .add_systems(Update, (
-        steam_callbacks,
-        game::handle_input,
-        game::update_board,
-        game::update_piece_positions,
-        game::check_connections,
-        game::check_solution,
+        game_systems::handle_input,
+        game_systems::update_board,
+        game_systems::update_piece_positions,
+        game_systems::check_connections,
+        game_systems::check_solution,
         ui::update_hud,
-    ).run_if(in_state(GameState::Playing)))
+    ).run_if(in_state(GameState::Playing)));
 
+    // Steam callbacks (if available)
+    #[cfg(feature = "steam")]
+    app.add_systems(Update, steam_callbacks.run_if(in_state(GameState::Playing)));
+
+    app
     // Systems when entering LevelComplete state
-    .add_systems(OnEnter(GameState::LevelComplete), (
-        on_level_complete,
-    ))
+    .add_systems(OnEnter(GameState::LevelComplete), on_level_complete)
 
     // Systems that run in LevelComplete state
     .add_systems(Update, (
@@ -101,24 +162,12 @@ fn main() {
     ).run_if(in_state(GameState::LevelComplete)))
 
     // Systems when exiting Playing state
-    .add_systems(OnExit(GameState::Playing), (
-        game::cleanup_level,
-    ))
+    .add_systems(OnExit(GameState::Playing), game_systems::cleanup_level)
 
     // Run the app
     .run();
 }
 
-// Game states
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-pub enum GameState {
-    #[default]
-    MainMenu,
-    Playing,
-    LevelComplete,
-    Settings,
-    Leaderboard,
-}
 
 // Startup systems
 fn setup_camera(mut commands: Commands) {
@@ -126,22 +175,8 @@ fn setup_camera(mut commands: Commands) {
     info!("Camera spawned");
 }
 
-fn initialize_network_client(
-    steam: Option<Res<SteamManager>>,
-    mut network: ResMut<network::NetworkClient>,
-) {
-    if let Some(steam) = steam {
-        let steam_id = steam.get_steam_id();
-        let api_key = format!("steam_{}", steam_id.raw());
-        *network = network::NetworkClient::new(api_key);
-        info!("Network client initialized with Steam ID");
-    } else {
-        *network = network::NetworkClient::new("offline_mode".to_string());
-        info!("Network client initialized in offline mode");
-    }
-}
-
 // Steam callback system (must run every frame)
+#[cfg(feature = "steam")]
 fn steam_callbacks(steam: Option<Res<SteamManager>>) {
     if let Some(steam) = steam {
         steam.run_callbacks();
@@ -150,12 +185,12 @@ fn steam_callbacks(steam: Option<Res<SteamManager>>) {
 
 // Level completion handler
 fn on_level_complete(
-    steam: Option<Res<SteamManager>>,
+    #[cfg(feature = "steam")] steam: Option<Res<SteamManager>>,
     mut stats: ResMut<PlayerStats>,
     level_query: Query<&CurrentLevel>,
-    network: Res<network::NetworkClient>,
+    #[cfg(feature = "network")] network: Res<network::NetworkClient>,
 ) {
-    let Ok(current_level) = level_query.get_single() else {
+    let Ok(current_level) = level_query.single() else {
         error!("No current level found!");
         return;
     };
@@ -173,16 +208,11 @@ fn on_level_complete(
     info!("========================================");
 
     // Steam integration
+    #[cfg(feature = "steam")]
     if let Some(steam) = steam {
         // Update Steam stats
-        steam.update_stat(
-            steam::STAT_PROOFS_COMPLETED,
-            stats.proofs_completed as i32
-        );
-        steam.update_stat(
-            steam::STAT_LEVELS_COMPLETED,
-            stats.levels_completed as i32
-        );
+        steam.update_stat(steam::STAT_PROOFS_COMPLETED, stats.proofs_completed as i32);
+        steam.update_stat(steam::STAT_LEVELS_COMPLETED, stats.levels_completed as i32);
 
         // Check and unlock achievements
         match stats.proofs_completed {
@@ -208,30 +238,31 @@ fn on_level_complete(
         }
     }
 
-    // Export proof for network submission
-    let proof = ExportedProof::from_level(
-        &current_level.0,
-        stats.last_level_time_secs,
-    );
+    // Export proof
+    let proof = ExportedProof::from_level(&current_level.0, stats.last_level_time_secs);
+    info!("Proof exported: {} bytes SMT-LIB2", proof.proof_smt2.len());
 
     // Submit proof to server (async, non-blocking)
-    let network_clone = network.clone();
-    std::thread::spawn(move || {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            match network_clone.submit_proof(proof).await {
-                Ok(response) => {
-                    info!("Proof submitted successfully!");
-                    info!("  Points awarded: {}", response.points_awarded);
-                    if let Some(rank) = response.global_rank {
-                        info!("  Global rank: #{}", rank);
+    #[cfg(feature = "network")]
+    {
+        let network_clone = network.clone();
+        std::thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                match network_clone.submit_proof(proof).await {
+                    Ok(response) => {
+                        info!("Proof submitted successfully!");
+                        info!("  Points awarded: {}", response.points_awarded);
+                        if let Some(rank) = response.global_rank {
+                            info!("  Global rank: #{}", rank);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to submit proof: {}", e);
+                        warn!("  (Will retry later)");
                     }
                 }
-                Err(e) => {
-                    warn!("Failed to submit proof: {}", e);
-                    warn!("  (Will retry later)");
-                }
-            }
+            });
         });
-    });
+    }
 }

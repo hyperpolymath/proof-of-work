@@ -102,38 +102,40 @@ impl LogicPiece {
             Self::Wire { .. } => "-".to_string(),
         }
     }
-}
 
-// Visual representation
-#[derive(Bundle)]
-pub struct PieceBundle {
-    pub piece: LogicPiece,
-    pub sprite: SpriteBundle,
-}
-
-impl PieceBundle {
-    pub fn new(piece: LogicPiece, _asset_server: &AssetServer) -> Self {
-        let (x, y) = piece.position();
-        let color = match &piece {
+    pub fn color(&self) -> Color {
+        match self {
             LogicPiece::Assumption { .. } => Color::srgb(0.3, 0.8, 0.3), // Green
             LogicPiece::Goal { .. } => Color::srgb(0.8, 0.3, 0.3),       // Red
             LogicPiece::AndIntro { .. } => Color::srgb(0.5, 0.5, 0.9),   // Blue
             LogicPiece::OrIntro { .. } => Color::srgb(0.9, 0.5, 0.5),    // Light red
             LogicPiece::ImpliesIntro { .. } => Color::srgb(0.9, 0.9, 0.3), // Yellow
             _ => Color::srgb(0.6, 0.6, 0.6),                             // Gray
-        };
+        }
+    }
+}
+
+/// Visual representation bundle for pieces
+#[derive(Bundle)]
+pub struct PieceBundle {
+    pub piece: LogicPiece,
+    pub sprite: Sprite,
+    pub transform: Transform,
+}
+
+impl PieceBundle {
+    pub fn new(piece: LogicPiece, _asset_server: &AssetServer) -> Self {
+        let (x, y) = piece.position();
+        let color = piece.color();
 
         Self {
             piece,
-            sprite: SpriteBundle {
-                sprite: Sprite {
-                    color,
-                    custom_size: Some(Vec2::new(64.0, 64.0)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(x as f32 * 80.0, y as f32 * 80.0, 0.0),
+            sprite: Sprite {
+                color,
+                custom_size: Some(Vec2::new(64.0, 64.0)),
                 ..default()
             },
+            transform: Transform::from_xyz(x as f32 * 80.0, y as f32 * 80.0, 0.0),
         }
     }
 }
