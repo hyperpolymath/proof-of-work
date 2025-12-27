@@ -2,7 +2,10 @@
 
 use crate::game::{BoardState, Level, LogicPiece};
 
+#[cfg(feature = "z3-verify")]
 pub mod z3_integration;
+
+#[cfg(feature = "z3-verify")]
 pub use z3_integration::*;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -64,9 +67,17 @@ pub fn board_to_smt(board: &BoardState) -> String {
     smt
 }
 
+/// Check if two positions are adjacent (within 2 grid units)
+fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
+    let dx = (a.0 as i32 - b.0 as i32).abs();
+    let dy = (a.1 as i32 - b.1 as i32).abs();
+    dx <= 2 && dy <= 2 && (dx + dy) > 0
+}
+
 /// Verify that the puzzle solution is correct
 /// For the vertical slice: check if pieces form a valid proof
-pub fn verify_level_solution(level: &Level, pieces: &[LogicPiece]) -> bool {
+#[cfg(feature = "z3-verify")]
+pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
     use z3::ast::{Ast, Bool};
     use z3::{Config, Context, Solver};
 
@@ -96,18 +107,6 @@ pub fn verify_level_solution(level: &Level, pieces: &[LogicPiece]) -> bool {
             }
             _ => {}
         }
-    }
-
-    // For the vertical slice puzzle: "Connect P and Q to prove R"
-    // The solution requires:
-    // 1. An AND gate between P and Q
-    // 2. The AND gate should be positioned to connect P, Q to R
-
-    // Check connectivity: pieces are "connected" if they're adjacent (within 2 grid units)
-    fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
-        let dx = (a.0 as i32 - b.0 as i32).abs();
-        let dy = (a.1 as i32 - b.1 as i32).abs();
-        dx <= 2 && dy <= 2 && (dx + dy) > 0
     }
 
     // For the "P AND Q => R" puzzle:
@@ -170,4 +169,131 @@ pub fn verify_level_solution(level: &Level, pieces: &[LogicPiece]) -> bool {
 
     // No valid configuration found
     false
+}
+
+/// Mock verification when Z3 is not available
+/// Uses simple connectivity check
+#[cfg(not(feature = "z3-verify"))]
+pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
+    // Collect assumptions and goals
+    let mut assumptions: Vec<(&str, (u32, u32))> = Vec::new();
+    let mut goals: Vec<(&str, (u32, u32))> = Vec::new();
+    let mut and_gates: Vec<(u32, u32)> = Vec::new();
+
+    for piece in pieces {
+        match piece {
+            LogicPiece::Assumption { formula, position } => {
+                assumptions.push((formula, *position));
+            }
+            LogicPiece::Goal { formula, position } => {
+                goals.push((formula, *position));
+            }
+            LogicPiece::AndIntro { position } => {
+                and_gates.push(*position);
+            }
+            _ => {}
+        }
+    }
+
+    // Simple connectivity check: AND gate must be adjacent to P, Q, and R
+    for and_pos in &and_gates {
+        let mut p_connected = false;
+        let mut q_connected = false;
+        let mut goal_connected = false;
+
+        for (formula, pos) in &assumptions {
+            if is_adjacent(*pos, *and_pos) {
+                if *formula == "P" {
+                    p_connected = true;
+                }
+                if *formula == "Q" {
+                    q_connected = true;
+                }
+            }
+        }
+
+        for (_formula, pos) in &goals {
+            if is_adjacent(*and_pos, *pos) {
+                goal_connected = true;
+            }
+        }
+
+        if p_connected && q_connected && goal_connected {
+            // Mock verification passes - connections are correct
+            tracing::info!("Mock verification: connections valid (Z3 not available)");
+            return true;
+        }
+    }
+
+    false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_adjacency() {
+        assert!(is_adjacent((2, 5), (3, 5))); // Same row, adjacent
+        assert!(is_adjacent((2, 5), (4, 5))); // Same row, 2 apart
+        assert!(!is_adjacent((2, 5), (5, 5))); // Too far
+        assert!(is_adjacent((2, 5), (3, 6))); // Diagonal
+    }
+
+    #[test]
+    fn test_mock_verification() {
+        let level = Level {
+            id: 1,
+            name: "Test".to_string(),
+            description: "Test level".to_string(),
+            theorem: "(assert (=> (and P Q) R))".to_string(),
+            initial_state: BoardState {
+                width: 10,
+                height: 10,
+                pieces: vec![],
+            },
+            goal_state: crate::game::GoalCondition::ProveFormula {
+                formula: "R".to_string(),
+            },
+        };
+
+        // Create pieces that should verify
+        let pieces = vec![
+            LogicPiece::Assumption {
+                formula: "P".to_string(),
+                position: (2, 5),
+            },
+            LogicPiece::Assumption {
+                formula: "Q".to_string(),
+                position: (2, 3),
+            },
+            LogicPiece::Goal {
+                formula: "R".to_string(),
+                position: (8, 4),
+            },
+            LogicPiece::AndIntro { position: (4, 4) }, // Adjacent to P, Q, and close to R
+        ];
+
+        // This should fail - AND gate is not adjacent to R (8,4)
+        assert!(!verify_level_solution(&level, &pieces));
+
+        // Now place AND gate between all pieces
+        let pieces_valid = vec![
+            LogicPiece::Assumption {
+                formula: "P".to_string(),
+                position: (2, 5),
+            },
+            LogicPiece::Assumption {
+                formula: "Q".to_string(),
+                position: (2, 3),
+            },
+            LogicPiece::Goal {
+                formula: "R".to_string(),
+                position: (5, 4),
+            },
+            LogicPiece::AndIntro { position: (3, 4) }, // Adjacent to P(2,5), Q(2,3), and R(5,4)
+        ];
+
+        assert!(verify_level_solution(&level, &pieces_valid));
+    }
 }

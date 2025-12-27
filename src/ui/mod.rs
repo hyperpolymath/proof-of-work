@@ -3,25 +3,12 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
-use crate::game::{CurrentLevel, GameEntity, LogicPiece, PlayerStats};
+use crate::game::{CurrentLevel, PlaceablePiece, PlayerStats, SelectedPieceType};
 use crate::GameState;
-
-/// Resource to track selected piece type for placement
-#[derive(Resource, Default)]
-pub struct SelectedPieceType {
-    pub piece_type: Option<PlaceablePiece>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum PlaceablePiece {
-    AndGate,
-    OrGate,
-    Wire,
-}
 
 /// Main menu system - renders the start screen
 pub fn main_menu_system(mut contexts: EguiContexts, mut next_state: ResMut<NextState<GameState>>) {
-    let ctx = contexts.ctx_mut();
+    let Ok(ctx) = contexts.ctx_mut() else { return };
 
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
@@ -76,11 +63,6 @@ pub fn handle_menu_input(
     }
 }
 
-/// Setup game UI resources
-pub fn setup_game_ui(mut commands: Commands) {
-    commands.insert_resource(SelectedPieceType::default());
-}
-
 /// Game HUD - shows level info, piece palette, and controls
 pub fn update_hud(
     mut contexts: EguiContexts,
@@ -89,8 +71,6 @@ pub fn update_hud(
     mut selected: ResMut<SelectedPieceType>,
     mut next_state: ResMut<NextState<GameState>>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut commands: Commands,
-    piece_query: Query<(Entity, &LogicPiece, &Transform)>,
 ) {
     // ESC to return to menu
     if keyboard.just_pressed(KeyCode::Escape) {
@@ -98,12 +78,12 @@ pub fn update_hud(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    let Ok(ctx) = contexts.ctx_mut() else { return };
 
     // Top panel - level info
     egui::TopBottomPanel::top("hud_top").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            if let Ok(level) = level_query.get_single() {
+            if let Ok(level) = level_query.single() {
                 ui.heading(&level.0.name);
                 ui.separator();
                 ui.label(&level.0.description);
@@ -213,7 +193,7 @@ pub fn show_completion_screen(
     stats: Res<PlayerStats>,
     level_query: Query<&CurrentLevel>,
 ) {
-    let ctx = contexts.ctx_mut();
+    let Ok(ctx) = contexts.ctx_mut() else { return };
 
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
@@ -222,7 +202,7 @@ pub fn show_completion_screen(
             ui.heading(egui::RichText::new("PROOF VERIFIED!").size(48.0).strong());
             ui.add_space(20.0);
 
-            if let Ok(level) = level_query.get_single() {
+            if let Ok(level) = level_query.single() {
                 ui.label(egui::RichText::new(format!("Level: {}", level.0.name)).size(20.0));
             }
 
