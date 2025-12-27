@@ -1,4 +1,7 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use bevy::prelude::*;
+use bevy_egui::EguiPlugin;
 
 mod game;
 mod verification;
@@ -14,13 +17,13 @@ fn main() {
     // Initialize Steam first (before Bevy)
     let steam_manager = match SteamManager::new() {
         Ok(steam) => {
-            info!("✓ Steam initialized successfully");
+            info!("Steam initialized successfully");
             info!("  Username: {}", steam.get_username());
             info!("  Steam ID: {:?}", steam.get_steam_id());
             Some(steam)
         }
         Err(e) => {
-            warn!("⚠ Steam not available: {}", e);
+            warn!("Steam not available: {}", e);
             warn!("  Running in offline mode");
             None
         }
@@ -33,13 +36,16 @@ fn main() {
     // Core Bevy plugins
     .add_plugins(DefaultPlugins.set(WindowPlugin {
         primary_window: Some(Window {
-            title: "Proof of Work - Alpha v0.1.0".into(),
-                             resolution: (1280.0, 720.0).into(),
-                             resizable: true,
-                             ..default()
+            title: "Proof of Work - Logic Puzzle Game".into(),
+            resolution: (1280.0, 720.0).into(),
+            resizable: true,
+            ..default()
         }),
         ..default()
     }))
+
+    // Egui plugin for UI
+    .add_plugins(EguiPlugin)
 
     // Insert Steam as a resource (if available)
     .insert_resource(steam_manager)
@@ -56,7 +62,6 @@ fn main() {
     // Startup systems (run once at launch)
     .add_systems(Startup, (
         setup_camera,
-        setup_ui,
         initialize_network_client,
     ))
 
@@ -71,7 +76,7 @@ fn main() {
         game::load_level,
         game::spawn_pieces,
         ui::setup_game_ui,
-    ))
+    ).chain())
 
     // Systems that run every frame in Playing state
     .add_systems(Update, (
@@ -82,17 +87,16 @@ fn main() {
         game::check_connections,
         game::check_solution,
         ui::update_hud,
-        debug_input,
     ).run_if(in_state(GameState::Playing)))
 
     // Systems when entering LevelComplete state
     .add_systems(OnEnter(GameState::LevelComplete), (
         on_level_complete,
-        ui::show_completion_screen,
     ))
 
     // Systems that run in LevelComplete state
     .add_systems(Update, (
+        ui::show_completion_screen,
         ui::handle_completion_input,
     ).run_if(in_state(GameState::LevelComplete)))
 
@@ -118,21 +122,8 @@ pub enum GameState {
 
 // Startup systems
 fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
     info!("Camera spawned");
-}
-
-fn setup_ui(mut commands: Commands) {
-    // UI root node
-    commands.spawn(NodeBundle {
-        style: Style {
-            width: Val::Percent(100.0),
-                   height: Val::Percent(100.0),
-                   ..default()
-        },
-        ..default()
-    });
-    info!("UI root spawned");
 }
 
 fn initialize_network_client(
@@ -172,13 +163,14 @@ fn on_level_complete(
     // Update player stats
     stats.proofs_completed += 1;
     stats.levels_completed += 1;
-    stats.total_playtime_secs += 60; // TODO: Track actual time
+    stats.total_playtime_secs += stats.last_level_time_secs;
 
-    info!("═══════════════════════════════════");
-    info!("🎉 LEVEL COMPLETE!");
-    info!("   Level: {}", current_level.0.name);
-    info!("   Total proofs: {}", stats.proofs_completed);
-    info!("═══════════════════════════════════");
+    info!("========================================");
+    info!("  LEVEL COMPLETE!");
+    info!("  Level: {}", current_level.0.name);
+    info!("  Time: {}s", stats.last_level_time_secs);
+    info!("  Total proofs: {}", stats.proofs_completed);
+    info!("========================================");
 
     // Steam integration
     if let Some(steam) = steam {
@@ -195,15 +187,15 @@ fn on_level_complete(
         // Check and unlock achievements
         match stats.proofs_completed {
             1 => {
-                info!("🏆 Achievement unlocked: First Proof!");
+                info!("Achievement unlocked: First Proof!");
                 steam.unlock_achievement(steam::ACHIEVEMENT_FIRST_PROOF);
             }
             10 => {
-                info!("🏆 Achievement unlocked: Ten Proofs!");
+                info!("Achievement unlocked: Ten Proofs!");
                 steam.unlock_achievement(steam::ACHIEVEMENT_10_PROOFS);
             }
             100 => {
-                info!("🏆 Achievement unlocked: Hundred Proofs!");
+                info!("Achievement unlocked: Hundred Proofs!");
                 steam.unlock_achievement(steam::ACHIEVEMENT_100_PROOFS);
             }
             _ => {}
@@ -211,7 +203,7 @@ fn on_level_complete(
 
         // Check for speedrun achievement (level completed in < 60 seconds)
         if stats.last_level_time_secs < 60 {
-            info!("🏆 Achievement unlocked: Speedrunner!");
+            info!("Achievement unlocked: Speedrunner!");
             steam.unlock_achievement(steam::ACHIEVEMENT_SPEEDRUN);
         }
     }
@@ -229,52 +221,17 @@ fn on_level_complete(
         rt.block_on(async {
             match network_clone.submit_proof(proof).await {
                 Ok(response) => {
-                    info!("✓ Proof submitted successfully!");
+                    info!("Proof submitted successfully!");
                     info!("  Points awarded: {}", response.points_awarded);
                     if let Some(rank) = response.global_rank {
                         info!("  Global rank: #{}", rank);
                     }
                 }
                 Err(e) => {
-                    warn!("⚠ Failed to submit proof: {}", e);
+                    warn!("Failed to submit proof: {}", e);
                     warn!("  (Will retry later)");
                 }
             }
         });
     });
 }
-
-// Debug input system
-fn debug_input(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    mut next_state: ResMut<NextState<GameState>>,
-    steam: Option<Res<SteamManager>>,
-    stats: Res<PlayerStats>,
-) {
-    // F1: Toggle to main menu
-    if keyboard.just_pressed(KeyCode::F1) {
-        info!("Returning to main menu");
-        next_state.set(GameState::MainMenu);
-    }
-
-    // F2: Print debug info
-    if keyboard.just_pressed(KeyCode::F2) {
-        info!("═══ DEBUG INFO ═══");
-        info!("Proofs completed: {}", stats.proofs_completed);
-        info!("Levels completed: {}", stats.levels_completed);
-        info!("Total playtime: {}s", stats.total_playtime_secs);
-
-        if let Some(steam) = steam {
-            info!("Steam user: {}", steam.get_username());
-            info!("Steam ID: {:?}", steam.get_steam_id());
-        } else {
-            info!("Steam: Not available");
-        }
-        info!("══════════════════");
-    }
-
-    // F3: Force unlock all achievements (DEBUG ONLY)
-    #[cfg(debug_assertions)]
-    if keyboard.just_pressed(KeyCode::F3) {
-        if let Some(steam) = steam {
-            warn!("🔓 DEBUG: Unlocking all

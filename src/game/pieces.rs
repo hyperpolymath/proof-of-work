@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -6,11 +8,11 @@ pub enum LogicPiece {
     // Basic building blocks
     Assumption {
         formula: String,
-            position: (u32, u32),
+        position: (u32, u32),
     },
     Goal {
         formula: String,
-            position: (u32, u32),
+        position: (u32, u32),
     },
 
     // Logical operators (movable pieces)
@@ -86,6 +88,20 @@ impl LogicPiece {
             Self::Wire { .. } => "".to_string(),
         }
     }
+
+    pub fn label(&self) -> String {
+        match self {
+            Self::Assumption { formula, .. } => formula.clone(),
+            Self::Goal { formula, .. } => formula.clone(),
+            Self::AndIntro { .. } => "AND".to_string(),
+            Self::OrIntro { .. } => "OR".to_string(),
+            Self::ImpliesIntro { .. } => "=>".to_string(),
+            Self::NotIntro { .. } => "NOT".to_string(),
+            Self::ForallIntro { variable, .. } => format!("∀{}", variable),
+            Self::ExistsIntro { variable, .. } => format!("∃{}", variable),
+            Self::Wire { .. } => "-".to_string(),
+        }
+    }
 }
 
 // Visual representation
@@ -96,15 +112,15 @@ pub struct PieceBundle {
 }
 
 impl PieceBundle {
-    pub fn new(piece: LogicPiece, asset_server: &AssetServer) -> Self {
+    pub fn new(piece: LogicPiece, _asset_server: &AssetServer) -> Self {
         let (x, y) = piece.position();
-        let color = match piece {
-            LogicPiece::Assumption { .. } => Color::rgb(0.3, 0.8, 0.3),
-            LogicPiece::Goal { .. } => Color::rgb(0.8, 0.3, 0.3),
-            LogicPiece::AndIntro { .. } => Color::rgb(0.5, 0.5, 0.8),
-            LogicPiece::OrIntro { .. } => Color::rgb(0.8, 0.5, 0.5),
-            LogicPiece::ImpliesIntro { .. } => Color::rgb(0.8, 0.8, 0.3),
-            _ => Color::rgb(0.6, 0.6, 0.6),
+        let color = match &piece {
+            LogicPiece::Assumption { .. } => Color::srgb(0.3, 0.8, 0.3), // Green
+            LogicPiece::Goal { .. } => Color::srgb(0.8, 0.3, 0.3),       // Red
+            LogicPiece::AndIntro { .. } => Color::srgb(0.5, 0.5, 0.9),   // Blue
+            LogicPiece::OrIntro { .. } => Color::srgb(0.9, 0.5, 0.5),    // Light red
+            LogicPiece::ImpliesIntro { .. } => Color::srgb(0.9, 0.9, 0.3), // Yellow
+            _ => Color::srgb(0.6, 0.6, 0.6),                             // Gray
         };
 
         Self {
