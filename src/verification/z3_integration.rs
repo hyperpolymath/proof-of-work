@@ -1,9 +1,12 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 use z3::ast::{Ast, Bool};
 use z3::{Config, Context, Solver};
 
 use crate::game::Level;
 
-pub fn verify_level_solution(level: &Level) -> bool {
+/// Verify a level solution using Z3 SMT solver (simple boolean check)
+pub fn verify_formula(level: &Level) -> bool {
     let cfg = Config::new();
     let ctx = Context::new(&cfg);
     let solver = Solver::new(&ctx);
@@ -41,6 +44,7 @@ pub fn verify_level_solution(level: &Level) -> bool {
     }
 }
 
+/// Validate a proof formula locally
 pub fn validate_proof_locally(formula: &str) -> Result<bool, String> {
     let cfg = Config::new();
     let ctx = Context::new(&cfg);
@@ -53,44 +57,5 @@ pub fn validate_proof_locally(formula: &str) -> Result<bool, String> {
         z3::SatResult::Unsat => Ok(true),
         z3::SatResult::Sat => Ok(false),
         z3::SatResult::Unknown => Err("Solver timeout".to_string()),
-    }
-}
-
-// Convert board state to SMT formula
-pub fn board_to_smt(level: &Level) -> String {
-    let mut smt = String::from("(set-logic QF_LIA)\n");
-
-    for piece in &level.initial_state.pieces {
-        smt.push_str(&piece.to_smt());
-        smt.push('\n');
-    }
-
-    smt.push_str("(check-sat)\n");
-    smt.push_str("(get-model)\n");
-
-    smt
-}
-
-// Export proof for server upload
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ExportedProof {
-    pub level_id: u32,
-    pub player_id: String,  // Steam ID later
-    pub proof_smt2: String,
-    pub proof_isabelle: Option<String>,
-    pub solution_steps: Vec<String>,
-    pub time_taken_secs: u64,
-}
-
-impl ExportedProof {
-    pub fn from_level(level: &Level, solution_time: u64) -> Self {
-        Self {
-            level_id: level.id,
-            player_id: "local".to_string(),  // TODO: Steam ID
-            proof_smt2: board_to_smt(level),
-            proof_isabelle: None,
-            solution_steps: vec![],  // TODO: Record player actions
-            time_taken_secs: solution_time,
-        }
     }
 }
