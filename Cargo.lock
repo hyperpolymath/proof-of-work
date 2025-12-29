@@ -580,7 +580,7 @@ dependencies = [
 name = "bevy_egui"
 version = "0.38.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum =Add pinned toolchains + reproducible build "dadb9d5008b404675548c5b0da4e2b2440fb7b91ac789f79185041b9538c73d0"
+checksum = "dadb9d5008b404675548c5b0da4e2b2440fb7b91ac789f79185041b9538c73d0"
 dependencies = [
  "arboard",
  "bevy_app",
@@ -1141,7 +1141,7 @@ dependencies = [
  "concurrent-queue",
  "crossbeam-queue",
  "derive_more",
- "futures-liAdd pinned toolchains + reproducible buildte",
+ "futures-lite",
  "heapless",
  "pin-project",
 ]
