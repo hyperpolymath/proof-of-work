@@ -1,13 +1,15 @@
 = proof-of-work
 
-image:https://img.shields.io/badge/license-AGPL--3.0-blue.svg[AGPL-3.0,link="https://www.gnu.org/licenses/agpl-3.0"] image:https://img.shields.io/badge/philosophy-Palimpsest-purple.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
+image:https://img.shields.io/badge/License-MPL_2.0-blue.svg[MPL-2.0,link="https://opensource.org/licenses/MPL-2.0"]
+image:https://img.shields.io/badge/Philosophy-Palimpsest-purple.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-licence"]
+
+
 :toc:
 :toc-title: Contents
 :sectnums:
 
 image:https://img.shields.io/badge/Rust-2021-orange.svg[Rust 2021]
 image:https://img.shields.io/badge/Bevy-0.13-blue.svg[Bevy 0.13]
-image:https://img.shields.io/badge/License-MIT-green.svg[MIT License]
 image:https://img.shields.io/badge/RSR-Tier%201-gold.svg[RSR Tier 1]
 
 **A puzzle game where solutions are cryptographically verified - prove your work, literally.**
