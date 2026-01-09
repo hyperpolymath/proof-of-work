@@ -15,9 +15,10 @@
 # =============================================================================
 FROM rust:1.88-slim-bookworm AS builder
 
-# Install build dependencies (z3 uses system library via pkg-config)
+# Install build dependencies (libclang for bindgen, libz3 via pkg-config)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
+    libclang-dev \
     libz3-dev \
     libasound2-dev \
     libudev-dev \
