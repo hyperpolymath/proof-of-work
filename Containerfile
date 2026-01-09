@@ -15,11 +15,17 @@
 # =============================================================================
 FROM rust:1.88-slim-bookworm AS builder
 
-# Install build dependencies (libclang for bindgen, libz3 via pkg-config)
+# Install build dependencies
+# - g++, cmake, make, python3: z3-sys builds z3 from source (static-link-z3)
+# - libclang-dev: bindgen for z3-sys FFI generation
+# - Note: python3 is only in builder stage, not runtime (RSR compliant)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
+    g++ \
+    cmake \
+    make \
+    python3 \
     libclang-dev \
-    libz3-dev \
     libasound2-dev \
     libudev-dev \
     libwayland-dev \
@@ -57,9 +63,8 @@ LABEL org.opencontainers.image.source="https://github.com/hyperpolymath/proof-of
 LABEL org.opencontainers.image.description="Proof-of-Work puzzle game library"
 LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
-# Install runtime dependencies (libz3-4 is runtime lib for z3)
+# Install runtime dependencies (z3 is statically linked, no libz3-4 needed)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libz3-4 \
     libasound2 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
