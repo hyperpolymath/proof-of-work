@@ -50,20 +50,21 @@ RUN cargo build --release --features "$FEATURES"
 # =============================================================================
 # Stage 2: Runtime image
 # =============================================================================
-FROM cgr.dev/chainguard/wolfi-base:latest AS runtime
+FROM debian:bookworm-slim AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/hyperpolymath/proof-of-work"
 LABEL org.opencontainers.image.description="Proof-of-Work puzzle game library"
 LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
-# Install runtime dependencies
-RUN apk add --no-cache \
-    libz3 \
-    alsa-lib \
-    ca-certificates
+# Install runtime dependencies (libz3-4 is runtime lib for z3)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libz3-4 \
+    libasound2 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN adduser -D -u 1000 pow
+RUN useradd -m -u 1000 pow
 USER pow
 
 WORKDIR /app
