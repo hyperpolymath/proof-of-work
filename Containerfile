@@ -15,17 +15,11 @@
 # =============================================================================
 FROM rust:1.88-slim-bookworm AS builder
 
-# Install build dependencies
-# - g++, cmake, make, python3: z3-sys builds z3 from source (static-link-z3)
-# - libclang-dev: bindgen for z3-sys FFI generation
-# - Note: python3 is only in builder stage, not runtime (RSR compliant)
+# Install build dependencies for Bevy (headless mode, no z3)
+# Note: z3-verify feature requires additional deps (g++, cmake, make, python3, libclang-dev)
+#       but headless builds don't include z3-verify
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
-    g++ \
-    cmake \
-    make \
-    python3 \
-    libclang-dev \
     libasound2-dev \
     libudev-dev \
     libwayland-dev \
@@ -44,15 +38,16 @@ RUN mkdir src && \
     echo 'pub fn lib() {}' > src/lib.rs
 
 # Build dependencies only (cached layer)
-RUN cargo build --release --features headless && \
+# Use --no-default-features to exclude z3-verify (default feature)
+RUN cargo build --release --no-default-features --features headless && \
     rm -rf src target/release/deps/proof_of_work* target/release/proof-of-work*
 
 # Copy actual source
 COPY src ./src
 
-# Build the real binary
+# Build the real binary (headless by default, no z3-verify)
 ARG FEATURES="headless"
-RUN cargo build --release --features "$FEATURES"
+RUN cargo build --release --no-default-features --features "$FEATURES"
 
 # =============================================================================
 # Stage 2: Runtime image
@@ -63,7 +58,7 @@ LABEL org.opencontainers.image.source="https://github.com/hyperpolymath/proof-of
 LABEL org.opencontainers.image.description="Proof-of-Work puzzle game library"
 LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
 
-# Install runtime dependencies (z3 is statically linked, no libz3-4 needed)
+# Install runtime dependencies (headless mode has no z3)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     ca-certificates \
