@@ -15,9 +15,10 @@
 # =============================================================================
 FROM rust:1.88-slim-bookworm AS builder
 
-# Install build dependencies
+# Install build dependencies (g++ required for z3-sys cc crate)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
+    g++ \
     libz3-dev \
     libasound2-dev \
     libudev-dev \
