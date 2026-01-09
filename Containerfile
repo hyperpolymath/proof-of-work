@@ -15,12 +15,9 @@
 # =============================================================================
 FROM rust:1.88-slim-bookworm AS builder
 
-# Install build dependencies (g++/cmake/make required for z3-sys build from source)
+# Install build dependencies (z3 uses system library via pkg-config)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
-    g++ \
-    cmake \
-    make \
     libz3-dev \
     libasound2-dev \
     libudev-dev \

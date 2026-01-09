@@ -40,8 +40,8 @@ bevy = { version = "0.17", default-features = false, features = [
 ] }
 bevy_egui = "0.38"
 
-# Verification - optional, requires system libz3
-z3 = { version = "0.19", features = ["static-link-z3"], optional = true }
+# Verification - optional, uses system libz3 via pkg-config
+z3 = { version = "0.19", optional = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
