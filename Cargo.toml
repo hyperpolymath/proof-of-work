@@ -2,6 +2,15 @@
 name = "proof-of-work"
 version = "0.1.0"
 edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Proof-of-Work puzzle game library with Bevy engine and optional Z3 verification"
+repository = "https://github.com/hyperpolymath/proof-of-work"
+homepage = "https://github.com/hyperpolymath/proof-of-work"
+documentation = "https://docs.rs/proof-of-work"
+authors = ["hyperpolymath"]
+keywords = ["game", "puzzle", "bevy", "z3", "verification"]
+categories = ["games", "game-development"]
+readme = "README.adoc"
 
 [features]
 default = ["z3-verify"]
