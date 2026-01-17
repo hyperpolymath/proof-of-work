@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Maintainer: hyperpolymath <packages@hyperpolymath.dev>
+
+pkgname=proof-of-work-bin
+_pkgname=proof-of-work
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A puzzle game about formal verification and theorem proving"
+arch=('x86_64' 'aarch64')
+url="https://github.com/hyperpolymath/proof-of-work"
+license=('AGPL-3.0-or-later')
+provides=('proof-of-work')
+conflicts=('proof-of-work')
+depends=('alsa-lib' 'libxkbcommon')
+source_x86_64=("${_pkgname}-${pkgver}-x86_64.tar.gz::${url}/releases/download/v${pkgver}/${_pkgname}-v${pkgver}-x86_64-unknown-linux-gnu.tar.gz")
+source_aarch64=("${_pkgname}-${pkgver}-aarch64.tar.gz::${url}/releases/download/v${pkgver}/${_pkgname}-v${pkgver}-aarch64-unknown-linux-gnu.tar.gz")
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+    install -Dm755 "${srcdir}/${_pkgname}" "${pkgdir}/usr/bin/${_pkgname}"
+}
