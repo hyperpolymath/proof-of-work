@@ -1,0 +1,18 @@
+pkgbase = proof-of-work-bin
+	pkgdesc = A puzzle game about formal verification and theorem proving
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/hyperpolymath/proof-of-work
+	arch = x86_64
+	arch = aarch64
+	license = AGPL-3.0-or-later
+	depends = alsa-lib
+	depends = libxkbcommon
+	provides = proof-of-work
+	conflicts = proof-of-work
+	source_x86_64 = proof-of-work-0.1.0-x86_64.tar.gz::https://github.com/hyperpolymath/proof-of-work/releases/download/v0.1.0/proof-of-work-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+	sha256sums_x86_64 = SKIP
+	source_aarch64 = proof-of-work-0.1.0-aarch64.tar.gz::https://github.com/hyperpolymath/proof-of-work/releases/download/v0.1.0/proof-of-work-v0.1.0-aarch64-unknown-linux-gnu.tar.gz
+	sha256sums_aarch64 = SKIP
+
+pkgname = proof-of-work-bin
