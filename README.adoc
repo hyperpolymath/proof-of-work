@@ -125,3 +125,8 @@ Contributions welcome! Please read link:CONTRIBUTING.md[CONTRIBUTING.md] first.
 
 * https://bevyengine.org/[Bevy Engine] - Game engine
 * https://github.com/Z3Prover/z3[Z3 Prover] - SMT solver
+
+
+== Architecture
+
+See link:TOPOLOGY.md[TOPOLOGY.md] for a visual architecture map and completion dashboard.
