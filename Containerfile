@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2025 hyperpolymath
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath)
 
 # Proof-of-Work Container Image
 # Multi-stage build for Bevy game with optional Z3 verification
@@ -8,24 +8,24 @@
 #   default (headless)  - Server/test builds without display
 #   full               - With Z3 verification + Steam + network
 #
-# Container runtime support: nerdctl, podman, docker
+# Container runtime: podman (preferred), nerdctl, docker
 
 # =============================================================================
 # Stage 1: Build Rust binary
 # =============================================================================
-FROM rust:1.88-slim-bookworm AS builder
+FROM cgr.dev/chainguard/wolfi-base:latest AS builder
 
-# Install build dependencies for Bevy (headless mode, no z3)
-# Note: z3-verify feature requires additional deps (g++, cmake, make, python3, libclang-dev)
-#       but headless builds don't include z3-verify
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config \
-    libasound2-dev \
-    libudev-dev \
-    libwayland-dev \
+# Install build dependencies for Bevy (headless mode)
+RUN apk add --no-cache \
+    rust \
+    cargo \
+    pkgconf \
+    build-base \
+    alsa-lib-dev \
+    eudev-dev \
+    wayland-dev \
     libxkbcommon-dev \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
 WORKDIR /app
 
@@ -52,20 +52,19 @@ RUN cargo build --release --no-default-features --features "$FEATURES"
 # =============================================================================
 # Stage 2: Runtime image
 # =============================================================================
-FROM debian:bookworm-slim AS runtime
+FROM cgr.dev/chainguard/wolfi-base:latest AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/hyperpolymath/proof-of-work"
-LABEL org.opencontainers.image.description="Proof-of-Work puzzle game library"
-LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later"
+LABEL org.opencontainers.image.description="Proof-of-Work puzzle game with cryptographic verification"
+LABEL org.opencontainers.image.licenses="PMPL-1.0-or-later"
+LABEL org.opencontainers.image.authors="Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 
-# Install runtime dependencies (headless mode has no z3)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libasound2 \
+# Install runtime dependencies (headless mode)
+RUN apk add --no-cache \
+    alsa-lib \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && adduser -D -u 1000 -s /sbin/nologin pow
 
-# Create non-root user
-RUN useradd -m -u 1000 pow
 USER pow
 
 WORKDIR /app

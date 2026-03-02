@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Editor UI systems using egui.
 
 use bevy::prelude::*;

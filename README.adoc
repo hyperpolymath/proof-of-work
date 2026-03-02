@@ -1,7 +1,6 @@
 = proof-of-work
 
 image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
-image:https://img.shields.io/badge/Philosophy-Palimpsest-indigo.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-license"]
 
 
 :toc:
@@ -9,7 +8,7 @@ image:https://img.shields.io/badge/Philosophy-Palimpsest-indigo.svg[Palimpsest,l
 :sectnums:
 
 image:https://img.shields.io/badge/Rust-2021-orange.svg[Rust 2021]
-image:https://img.shields.io/badge/Bevy-0.13-blue.svg[Bevy 0.13]
+image:https://img.shields.io/badge/Bevy-0.18-blue.svg[Bevy 0.18]
 image:https://img.shields.io/badge/RSR-Tier%201-gold.svg[RSR Tier 1]
 
 **A puzzle game where solutions are cryptographically verified - prove your work, literally.**
@@ -28,7 +27,7 @@ proof-of-work is a puzzle game built with https://bevyengine.org/[Bevy] where pl
 
 == Requirements
 
-* Rust 1.70+
+* Rust 1.83+
 * Z3 solver (linked statically)
 * Steam SDK (optional, for Steam features)
 
@@ -115,11 +114,11 @@ When built with Steam support:
 
 == License
 
-MIT License - See link:LICENSE.txt[LICENSE.txt] for details.
+Palimpsest License (PMPL-1.0-or-later) - See link:LICENSE[LICENSE] for details.
 
 == Contributing
 
-Contributions welcome! Please read link:CONTRIBUTING.md[CONTRIBUTING.md] first.
+Contributions welcome! Please read link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] first.
 
 == Related Projects
 

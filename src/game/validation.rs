@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Validation for game board state and piece placement.
 //!
 //! Provides rules for validating piece placement, wire connections,

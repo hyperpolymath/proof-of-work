@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# humans.txt - The humans behind proof-of-work
+# See https://humanstxt.org/
+
+/* TEAM */
+Developer: Jonathan D.A. Jewell
+GitHub: hyperpolymath
+Role: Lead Developer
+Location: United Kingdom
+
+/* THANKS */
+Bevy Engine community
+Z3 SMT Solver team (Microsoft Research)
+
+/* SITE */
+Standards: Rhodium Standard Repositories (RSR)
+License: PMPL-1.0-or-later (Palimpsest License)
+Language: Rust 2021
+Engine: Bevy 0.18

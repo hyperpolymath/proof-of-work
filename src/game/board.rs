@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Board management for the logic puzzle game.
 //!
 //! Provides operations for creating and manipulating the puzzle board,

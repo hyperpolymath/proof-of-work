@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use crate::verification::ExportedProof;
@@ -79,7 +80,9 @@ impl NetworkClient {
         use sha2::{Sha256, Digest};
 
         let mut hasher = Sha256::new();
-        hasher.update(serde_json::to_string(proof).unwrap());
+        let proof_json = serde_json::to_string(proof)
+            .unwrap_or_else(|_| format!("{:?}", proof.proof_smt2));
+        hasher.update(proof_json);
         hasher.update(api_key.as_bytes());
 
         format!("{:x}", hasher.finalize())

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
 pub mod client;
 
 pub use client::NetworkClient;

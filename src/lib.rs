@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Proof of Work - A logic puzzle game with cryptographic verification
 //!
 //! This library exposes the core game logic for testing and embedding.

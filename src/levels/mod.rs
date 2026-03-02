@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Level pack management - loading, saving, and organizing levels.
 
 pub mod ui;
@@ -46,6 +46,7 @@ impl Default for LevelPack {
     }
 }
 
+#[allow(dead_code)]
 impl LevelPack {
     /// Create a new empty level pack
     pub fn new(id: &str, name: &str, author: &str) -> Self {
@@ -85,6 +86,7 @@ impl LevelPack {
 }
 
 /// Errors that can occur when working with level packs
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum LevelPackError {
     IoError(String),
@@ -137,6 +139,7 @@ pub struct LevelPackManager {
     pub current_level_index: Option<usize>,
 }
 
+#[allow(dead_code)]
 impl LevelPackManager {
     /// Create a new manager with the specified packs directory
     pub fn new(packs_dir: PathBuf) -> Self {

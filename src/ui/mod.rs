@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
@@ -129,6 +129,7 @@ pub fn update_hud(
             ui.add_space(10.0);
 
             let and_selected = selected.piece_type == Some(PlaceablePiece::AndGate);
+            #[allow(deprecated)]
             if ui
                 .add_sized(
                     [130.0, 40.0],
@@ -147,6 +148,7 @@ pub fn update_hud(
             }
 
             let or_selected = selected.piece_type == Some(PlaceablePiece::OrGate);
+            #[allow(deprecated)]
             if ui
                 .add_sized(
                     [130.0, 40.0],

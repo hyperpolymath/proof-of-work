@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 
+#[allow(dead_code)]
 pub mod board;
 pub mod pieces;
+#[allow(dead_code)]
 pub mod validation;
 
 use bevy::prelude::*;
@@ -76,6 +78,7 @@ pub struct GameEntity;
 pub struct PlayerPlaced;
 
 /// Placeable piece types for the UI
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlaceablePiece {
     AndGate,

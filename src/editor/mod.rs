@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Level editor for creating and modifying puzzles.
 
 pub mod ui;
@@ -10,6 +10,7 @@ use crate::game::{BoardState, GoalCondition, Level, LogicPiece};
 use crate::levels::LevelPack;
 
 /// The state of the level being edited
+#[allow(dead_code)]
 #[derive(Debug, Clone, Resource)]
 pub struct EditorState {
     /// Current level being edited
@@ -69,6 +70,7 @@ impl Default for EditorState {
     }
 }
 
+#[allow(dead_code)]
 impl EditorState {
     /// Create a new editor state for a blank level
     pub fn new() -> Self {
@@ -201,6 +203,7 @@ impl EditorState {
 }
 
 /// Editor tools
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum EditorTool {
     #[default]
@@ -290,6 +293,7 @@ pub struct SaveLevelEvent {
 }
 
 /// Create a new level pack for user-created levels
+#[allow(dead_code)]
 pub fn create_user_pack(name: &str, author: &str) -> LevelPack {
     let id = name
         .to_lowercase()

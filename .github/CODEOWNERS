@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# CODEOWNERS - Code ownership for proof-of-work
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files
+* @hyperpolymath
+
+# Game engine and core logic
+/src/game/ @hyperpolymath
+/src/verification/ @hyperpolymath
+
+# Infrastructure and CI/CD
+/.github/workflows/ @hyperpolymath
+/deploy/ @hyperpolymath
+/Containerfile @hyperpolymath
+
+# SCM and machine-readable metadata
+/.machine_readable/ @hyperpolymath

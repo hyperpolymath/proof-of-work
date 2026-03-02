@@ -1,2 +1,24 @@
 ;; SPDX-License-Identifier: PMPL-1.0-or-later
-;; Reserved for future use.
+;; PLAYBOOK.scm - Operational playbook for proof-of-work
+
+(playbook
+  (metadata
+    (version "1.0.0")
+    (created "2026-01-30")
+    (updated "2026-03-02"))
+  (quick-start
+    (prerequisites "Rust 1.83+" "cargo")
+    (steps
+      (step 1 "Clone" "git clone https://github.com/hyperpolymath/proof-of-work")
+      (step 2 "Build" "cargo build --release")
+      (step 3 "Test" "cargo test")
+      (step 4 "Run" "cargo run")))
+  (common-tasks
+    (development
+      (task "Test" (command "cargo test"))
+      (task "Lint" (command "cargo clippy"))
+      (task "Format" (command "cargo fmt"))
+      (task "Build headless" (command "cargo build --no-default-features --features headless"))
+      (task "Build full" (command "cargo build --features full"))))
+  (maintenance
+    (monthly (task "Update deps" "cargo update"))))

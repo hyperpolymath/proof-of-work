@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
@@ -247,7 +247,10 @@ fn on_level_complete(
     {
         let network_clone = network.clone();
         std::thread::spawn(move || {
-            let rt = tokio::runtime::Runtime::new().unwrap();
+            let Ok(rt) = tokio::runtime::Runtime::new() else {
+                warn!("Failed to create async runtime for proof submission");
+                return;
+            };
             rt.block_on(async {
                 match network_clone.submit_proof(proof).await {
                     Ok(response) => {

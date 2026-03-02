@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT OR Apache-2.0
+// SPDX-License-Identifier: PMPL-1.0-or-later
 
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -75,6 +75,7 @@ impl LogicPiece {
         }
     }
 
+    #[allow(dead_code)]
     pub fn to_smt(&self) -> String {
         match self {
             Self::Assumption { formula, .. } => format!("(assert {})", formula),
