@@ -13,19 +13,20 @@
 # =============================================================================
 # Stage 1: Build Rust binary
 # =============================================================================
-FROM cgr.dev/chainguard/wolfi-base:latest AS builder
+FROM docker.io/library/rust:1.85-slim-bookworm AS builder
 
 # Install build dependencies for Bevy (headless mode)
-RUN apk add --no-cache \
-    rust \
-    cargo \
-    pkgconf \
-    build-base \
-    alsa-lib-dev \
-    eudev-dev \
-    wayland-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libasound2-dev \
+    libudev-dev \
+    libwayland-dev \
     libxkbcommon-dev \
-    ca-certificates
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Bevy 0.18 requires Rust nightly (1.89+)
+RUN rustup toolchain install nightly && rustup default nightly
 
 WORKDIR /app
 
