@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Clade declaration — part of the gv-clade-index registry
+# See: https://github.com/hyperpolymath/gv-clade-index
+
+[identity]
+uuid = "8512bde0-7023-5704-a7d7-592e5a222672"
+primary-forge = "github"
+primary-owner = "hyperpolymath"
+canonical-name = "proof-of-work"
+prefixed-name = "fv-proof-of-work"
+
+[clade]
+primary = "fv"
+secondary = []
+assigned = "2026-03-16"
+rationale = ""
+
+[forges]
+github = "hyperpolymath/proof-of-work"
+gitlab = "hyperpolymath/proof-of-work"
+bitbucket = "hyperpolymath/proof-of-work"
+
+[lineage]
+type = "standalone"
+parent = "Proof-of-work verification tooling"
+born = "2026-03-16"
