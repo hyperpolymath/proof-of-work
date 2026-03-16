@@ -3,6 +3,7 @@
 //!
 //! This library exposes the core game logic for testing and embedding.
 
+#![forbid(unsafe_code)]
 pub mod editor;
 pub mod game;
 pub mod levels;
