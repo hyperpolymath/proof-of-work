@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: PMPL-1.0-or-later
 //! Fuzz target for proof verification module.
 //!
 //! Tests the verification logic with arbitrary board states to find
