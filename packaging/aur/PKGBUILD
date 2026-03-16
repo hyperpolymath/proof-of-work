@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: PMPL-1.0-or-later
 # Maintainer: hyperpolymath <packages@hyperpolymath.dev>
 
 pkgname=proof-of-work-bin
@@ -8,7 +8,7 @@ pkgrel=1
 pkgdesc="A puzzle game about formal verification and theorem proving"
 arch=('x86_64' 'aarch64')
 url="https://github.com/hyperpolymath/proof-of-work"
-license=('AGPL-3.0-or-later')
+license=('PMPL-1.0-or-later')
 provides=('proof-of-work')
 conflicts=('proof-of-work')
 depends=('alsa-lib' 'libxkbcommon')
