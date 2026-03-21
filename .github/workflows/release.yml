@@ -14,7 +14,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   build:

@@ -5,7 +5,8 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -Dwarnings
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   test:
