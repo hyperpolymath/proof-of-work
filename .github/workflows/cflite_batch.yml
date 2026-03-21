@@ -4,7 +4,8 @@ on:
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sunday
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   Batch:
