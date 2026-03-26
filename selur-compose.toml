@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# proof-of-work — Stapeln/Selur service definition.
+#
+# Puzzle game with cryptographic verification built on Bevy.
+# Multi-stage build: Rust nightly builder (Bevy 0.18) + wolfi-base runtime.
+# Runs in headless mode by default (server/test builds without display).
+#
+# Build features:
+#   headless (default)  — No display, for server/CI
+#   z3-verify           — With Z3 verification + Steam + network
+#
+# Usage:
+#   podman-compose -f selur-compose.toml up -d
+#   just stack-up
+
+[project]
+name = "proof-of-work"
+
+# =============================================================================
+# Proof-of-Work — Bevy game (headless mode)
+# =============================================================================
+[services.app]
+build = { context = ".", dockerfile = "Containerfile" }
+restart = "unless-stopped"
+networks = ["default"]
+environment = [
+  "BEVY_HEADLESS=1",
+  "RUST_LOG=info",
+]
+healthcheck = { test = "./proof-of-work --version || exit 1", interval = "30s", timeout = "5s", retries = 3 }
