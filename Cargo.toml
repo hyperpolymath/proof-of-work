@@ -81,3 +81,10 @@ path = "src/main.rs"
 [lib]
 name = "proof_of_work"
 path = "src/lib.rs"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "proof_of_work_bench"
+harness = false
