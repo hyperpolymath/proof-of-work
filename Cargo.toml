@@ -56,7 +56,7 @@ reqwest = { version = "0.13", features = ["json"], optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }
 
 # Hashing for signatures
-sha2 = "0.10"
+sha2 = "0.11"
 
 # Logging
 tracing = "0.1"
@@ -81,3 +81,10 @@ path = "src/main.rs"
 [lib]
 name = "proof_of_work"
 path = "src/lib.rs"
+
+[dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
+
+[[bench]]
+name = "proof_of_work_bench"
+harness = false
