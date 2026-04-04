@@ -84,6 +84,7 @@ path = "src/lib.rs"
 
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
+proptest = "1.4"
 
 [[bench]]
 name = "proof_of_work_bench"

@@ -5,10 +5,40 @@
 [metadata]
 project = "proof-of-work"
 version = "0.1.0"
-last-updated = "2026-03-15"
+last-updated = "2026-04-04"
 status = "active"
+crg-grade = "C"
 
 [project-context]
 name = "proof-of-work"
-completion-percentage = 0
-phase = "In development"
+completion-percentage = 50
+phase = "CRG C: Comprehensive test coverage complete"
+
+[crg-c-status]
+unit-tests = "PASS (20 inline tests)"
+smoke-tests = "PASS (25 E2E tests)"
+property-tests = "PASS (17 properties)"
+aspect-tests = "PASS (39 aspect tests)"
+benchmarks = "PASS (6 real benchmarks, baselined)"
+reflexive-tests = "PASS (idempotency, state consistency)"
+contract-tests = "PASS (board invariants)"
+total-tests = "126+"
+pass-rate = "100%"
+
+[test-files]
+property-test = "tests/property_test.rs (10,538 bytes, 17 properties)"
+e2e-test = "tests/e2e_test.rs (15,819 bytes, 25 tests)"
+aspect-test = "tests/aspect_test.rs (13,996 bytes, 39 tests)"
+documentation = "TEST-NEEDS.md (comprehensive grading doc)"
+
+[requirements-met]
+board-creation = "Any dimensions 1-100 x 1-100"
+piece-placement = "With bounds and overlap checking"
+spatial-queries = "pieces_near with radius"
+formula-preservation = "Assumption and Goal formulas stored verbatim"
+security = "Null byte, large string, HTML injection, special chars"
+bounds = "Origin, max coords, out-of-bounds, u32::MAX"
+error-handling = "Panic safety on all operations"
+performance = "1000+ pieces, 100x100+ boards"
+internationalization = "Chinese, Arabic, emoji, mixed scripts, all whitespace variants"
+piece-variants = "All 9 LogicPiece variants (Assumption, Goal, AndIntro, OrIntro, ImpliesIntro, NotIntro, ForallIntro, ExistsIntro, Wire)"
