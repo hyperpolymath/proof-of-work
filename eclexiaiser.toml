@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# eclexiaiser manifest for proof-of-work
+
+[project]
+name = "proof-of-work"
+
+[[functions]]
+name = "main"
+source = "src/main.rs"
+energy-budget-mj = 800
+
+[carbon]
+provider = "static"
+region = "GB"
+static-intensity = 200.0
+
+[report]
+format = "text"
+include-recommendations = true
