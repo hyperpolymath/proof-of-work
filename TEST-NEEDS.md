@@ -1,5 +1,7 @@
 # TEST-NEEDS.md — proof-of-work CRG Grading
 
+## CRG Grade: C — ACHIEVED 2026-04-04
+
 **Status:** CRG C Achieved
 **Date:** 2026-04-04
 **Graded Against:** CRG v2.0 Specification
