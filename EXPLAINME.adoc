@@ -5,10 +5,23 @@
 
 The README makes claims. This file backs them up.
 
-[quote, README]
-____
-Palimpsest License (PMPL-1.0-or-later) - See link:LICENSE[LICENSE] for details.
-____
+== Claims Substantiation
+
+=== Claim 1: "Solutions are verified using Z3 SMT solver, ensuring completed puzzles are mathematically valid"
+
+**How it works:** The game constructs constraint systems describing each puzzle's solution space (e.g., "x + y = 10 AND x > y"). When a player submits a solution, `src/verification/` encodes the player's answer as additional constraints. The Z3 solver then checks satisfiability: if SAT, the solution is mathematically correct. The verification happens synchronously in `src/main.rs`'s game loop or asynchronously in the level editor (`src/ui/`), ensuring no invalid solution ever produces an achievement or leaderboard entry.
+
+**Caveat:** Z3 verification is sound (correct solutions always verified) but depends on puzzle correctness. If a puzzle's constraint system is malformed, Z3 may return false negatives (reject correct solutions). Puzzles must be audited during creation in the level editor.
+
+**Evidence:** `src/verification/` contains Z3 solver integration; `src/main.rs` invokes verification on solution submission; `src/game/puzzles.rs` defines puzzle constraint structure.
+
+=== Claim 2: "Steam Integration - Achievements, leaderboards, cloud saves"
+
+**How it works:** The Steam SDK (third-party C binding) is integrated in `src/steam/`. Game state (puzzle completion, solve times, high scores) is persisted to Steam Cloud via the `steam_cloud_save()` function. Achievements are unlocked through the `steam_unlock_achievement()` call when the solver completes a puzzle. Leaderboards are updated via `steam_submit_leaderboard_score()`, which ranks players by solution time. All Steam calls are wrapped in safe Rust APIs that translate between game state and Steam's data model.
+
+**Caveat:** Steam is optional—the game runs offline without achievements or cloud saves. If Steam SDK is unavailable, fallback is local file-based persistence. Leaderboard cheating is possible if timestamps are manipulated client-side; production deployments should verify times server-side.
+
+**Evidence:** `src/steam/` directory contains Steam integration; `src/main.rs` initializes Steam context; `src/game/` calls steam_* functions on state changes.
 
 == Technology Choices
 
@@ -17,17 +30,46 @@ ____
 | Technology | Learn More
 
 | **Rust** | https://www.rust-lang.org
+| **Bevy 0.18** | ECS game engine
+| **Z3 Prover** | SMT solver (constraint verification)
+| **Steam SDK** | Platform integration
+| **bevy_egui** | UI components
 |===
 
 == File Map
 
-[cols="1,2"]
+[cols="1,3"]
 |===
-| Path | What's There
+| Path | Purpose
 
-| `src/` | Source code
+| `src/main.rs` | Bevy app entry: system scheduling, Z3 initialization, event dispatch
+| `src/game/` | Game logic: puzzle definitions, solver state, solution tracking
+| `src/game/puzzles.rs` | Puzzle structure: constraints, solutions, difficulty ratings
+| `src/game/solver.rs` | Game state: player progress, current puzzle, move history
+| `src/ui/` | Bevy UI components, egui integration, level editor UI
+| `src/ui/puzzle_editor.rs` | Interactive puzzle creation with constraint editor
+| `src/verification/` | Z3 integration: constraint encoding, satisfiability checking, result interpretation
+| `src/verification/z3_bridge.rs` | Z3 solver wrapper (safe Rust API over C bindings)
+| `src/verification/constraint_builder.rs` | Converts puzzle AST to Z3 constraints
+| `src/network/` | Multiplayer (if enabled): puzzle sharing, solution broadcasting
+| `src/network/puzzle_broadcast.rs` | Sends/receives puzzle definitions over network
+| `src/steam/` | Steam SDK wrapper: achievements, leaderboards, cloud saves
+| `src/steam/init.rs` | Steam context initialization and callback setup
+| `src/steam/achievements.rs` | Unlock achievements on puzzle completion
+| `src/steam/leaderboards.rs` | Submit solve times, fetch rankings
+| `src/steam/cloud.rs` | Save/load game state to Steam Cloud
+| `assets/` | Game art, sprites, puzzle data
+| `levels/` | Bundled puzzle definitions (JSON or custom format)
 |===
 
-== Questions?
+== Dogfooted Across The Account
 
-Open an issue or reach out directly — happy to explain anything in more detail.
+| Project | Integration |
+| **panic-attacker** | Scans Z3 bridge for unsafe FFI patterns
+| **vql-ut** | Encodes puzzle constraints as VQL-UT queries with proof clauses
+| **reposystem** | Models puzzle/solver as provider/consumer graph
+| **proven** | Uses proven SafeMath library for overflow-safe puzzle arithmetic
+
+== Readiness
+
+**CRG Grade:** C (Beta) - Core game loop and Z3 verification working, Steam integration optional but functional, needs broader level suite and multiplayer testing.
