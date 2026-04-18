@@ -1,0 +1,617 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= proof-of-work — CRG Audit (2026-04-18)
+Jonathan D.A. Jewell
+2026-04-18
+:toc:
+:sectnums:
+
+== Scope and Standard
+
+Evaluates the `verification-ecosystem/proof-of-work` repository against
+*Component Readiness Grades v2.0 (STRICT)*, 2026-03-30 revision.
+proof-of-work is self-declared *C* with a dedicated `[crg-c-status]`
+block and a matching `TEST-NEEDS.md` scorecard. The audit checks the
+claim against on-disk evidence, estate dogfooding signal, and the v2.0
+"honest D > dishonest B" clause.
+
+- Standard: `standards/component-readiness-grades/COMPONENT-READINESS-GRADES.md`
+- Criteria boilerplate: `rsr-template-repo/docs/governance/CRG-CRITERIA.adoc`
+- Audit template: `rsr-template-repo/docs/governance/CRG-AUDIT-TEMPLATE.adoc`
+- Self-declared grade (prior art):
+  * `.machine_readable/6a2/STATE.a2ml` `[metadata] crg-grade = "C"`,
+    last-updated 2026-04-04.
+  * `[project-context] completion-percentage = 50`,
+    `phase = "CRG C: Comprehensive test coverage complete"`.
+  * `TEST-NEEDS.md` header: "CRG Grade: C — ACHIEVED 2026-04-04".
+- Audit date: 2026-04-18
+- Auditor: Jonathan D.A. Jewell
+
+Schema note: proof-of-work uses the *flat* `crg-grade = "C"` under
+`[metadata]` (same form HYP-S005 canary matches; no rule drift here).
+There is no `[crg-grade-previous]` audit-trail key yet.
+
+The audit grades the repo *as-is today*, not aspirationally.
+
+== v2.0 Strictness Recap
+
+[cols="1,3,4"]
+|===
+| Grade | Release Stage | Hard Requirement (v2.0)
+
+| X | None             | Untested.
+| F | Reject           | Harmful, wasteful, or superseded.
+| E | Pre-alpha        | >=1 test, failures documented.
+| D | Alpha            | Test matrix + scope documented + *RSR compliance mandatory*.
+| C | Alpha-stable     | Dogfooded, CI green, *deep per-file + per-directory annotation*.
+| B | Beta             | 6+ *diverse* external targets, issues fed back.
+| A | Stable           | Real-world external feedback confirms value; no harm.
+|===
+
+Publication requires B+. Long alpha is discipline, not shame.
+
+== Evidence Inventory (verified 2026-04-18)
+
+=== Structural compliance (Grade D floor)
+
+[cols="2,1,3"]
+|===
+| Item | State | Source
+
+| RSR mandatory workflows (17+)
+| PRESENT (27 YAML files in `.github/workflows/`)
+| `.github/workflows/` — all canonical workflows present incl. hypatia-scan, codeql, scorecard, rsr-antipattern, guix-nix-policy, rust-ci, mirror, secret-scanner, wellknown-enforcement, ts-blocker, npm-bun-blocker, plus `dogfood-gate.yml` and `boj-build.yml`.
+
+| `.machine_readable/6a2/` canonical A2ml
+| PRESENT (STATE, META, ECOSYSTEM, AGENTIC, NEUROSYM, PLAYBOOK — all 6 files)
+| Only STATE.a2ml has substantive content (45 lines). META (10 lines), ECOSYSTEM (11 lines), AGENTIC (798 bytes), NEUROSYM (480 bytes), PLAYBOOK (631 bytes) are near-empty stubs — *five of six 6a2 files are schema skeletons, not documentation*.
+
+| `0-AI-MANIFEST.a2ml`
+| PRESENT (856 bytes)
+| Root
+
+| `README.adoc`, `EXPLAINME.adoc`, `CONTRIBUTING.{md,adoc}`, `SECURITY.md`, `MAINTAINERS.adoc`, `CODE_OF_CONDUCT.md`, `ROADMAP.adoc`, `PALIMPSEST.adoc`, `NOTICE`
+| PRESENT
+| Root
+
+| `docs/` orientation subtree
+| *minimal* — only `docs/CITATIONS.adoc` (1 file, 37 lines). No `architecture/`, `decisions/`, `governance/` (until this audit), `practice/`, `specification/`.
+| Thinner `docs/` than neurophone's two-file tree.
+
+| `LICENSE` + `LICENSES/` directory
+| PRESENT (`LICENSE` is PMPL-1.0-or-later full text, `LICENSES/PMPL-1.0-or-later.txt`, `LICENSES/MPL-2.0.txt`)
+| Root
+
+| `guix.scm` + `flake.nix`
+| PRESENT (both)
+| Root
+
+| `.well-known/` (security.txt, ai.txt, humans.txt)
+| PRESENT (all three)
+| `.well-known/`
+
+| SPDX headers on source
+| PRESENT on 20/20 Rust source and test files sampled
+| Every `src/**.rs` and `tests/*.rs` carries `// SPDX-License-Identifier: PMPL-1.0-or-later`.
+
+| `Containerfile` (not `Dockerfile`)
+| PRESENT (`Containerfile` at root, `.clusterfuzzlite/Containerfile` for fuzzing). Zero `Dockerfile` at any depth.
+| Container policy met.
+
+| `Justfile` + `Mustfile` (no `Makefile`)
+| PRESENT; zero `Makefile`. `Mustfile` declares `security`/`tests`/`format` checks.
+| RSR R-020 met.
+
+| Contractile trident
+| PRESENT: `.machine_readable/INTENT.contractile`, `TRUST.contractile`, `MUST.contractile`, `ADJUST.contractile` (four of the six verbs). Plus `contractiles/{dust,lust,must,k9}/` and `.machine_readable/contractiles/{dust,trust}/` runner tree. `bust` verb file absent.
+| Trident present; six-verb layout partial.
+
+| Remote
+| `origin → git@github.com:hyperpolymath/proof-of-work.git` plus four mirror remotes (bitbucket, codeberg, gitlab, sourcehut)
+| `git remote -v`. Per GitHub-only mirroring rule the four mirrors should be driven by the downstream hub-and-spoke, not local push; presence of these remotes is informational only.
+
+| `.tool-versions`
+| PRESENT (`rust stable`, `just 1.36.0`)
+| Root
+
+| `hooks/`
+| PRESENT (`validate-codeql.sh`, `validate-permissions.sh`, `validate-sha-pins.sh`, `validate-spdx.sh`)
+| Git-hook battery present.
+
+| `.clusterfuzzlite/`
+| PRESENT (`build.sh`, `Containerfile`, `project.yaml`)
+| Fuzzing scaffold present.
+
+| `fuzz/`
+| PRESENT (`Cargo.toml`, `fuzz_targets/`)
+| cargo-fuzz scaffold present.
+|===
+
+*RSR compliance verdict*: **met — D-floor satisfied**. The file
+inventory is a clean, populated D-floor with no merge conflicts (a
+direct `rg '^<<<<<<< HEAD|^>>>>>>> '` across the whole worktree
+returns zero hits; contrast with the neurophone audit where the same
+grep found 20 files). Workflows parse, LICENSE is clean, SPDX is
+uniform.
+
+The D-floor-*content* weakness, to carry forward, is that the `docs/`
+tree is one file and ROADMAP.adoc is still the unfilled
+`rsr-template-repo` placeholder (generic "v0.1.0 - Foundation: Core
+functionality / Basic documentation / CI/CD pipeline"). That does not
+disqualify D but is the first thing a C audit will catch.
+
+=== Ecosystem-overlap alarm (Grade D+ honesty check)
+
+An adjacent repo exists at `/var/mnt/eclipse/repos/games-ecosystem/pow-the-game/`
+with AGPL-3.0 header, private-visibility badge, and a substantial
+research README exploring "Steam Workshop, Steamworks API, and other
+gaming-platform networks as substrates for distributed proof-of-work
+computation". That is — from file contents — *the real game research
+project*. The verification-ecosystem `proof-of-work/` under audit is
+PMPL-1.0-or-later, lacks the research narrative, and has a
+`CLADE.a2ml` that declares:
+
+- `prefixed-name = "fv-proof-of-work"` — formal-verification clade, not games
+- `parent = "Proof-of-work verification tooling"` — not a real parent object
+- `lineage.type = "standalone"`
+
+Meanwhile `.machine_readable/anchors/ANCHOR.a2ml` declares `parents:
+["org.hyperpolymath.boj-server"]` and `clade: "unknown"`. The two
+clade/anchor files disagree about parentage, and neither matches the
+README's self-presentation as a Bevy + Z3 puzzle game.
+
+This is not itself a CRG-reducing finding, but it is an
+*identity-and-scope* finding. A repo that cannot state in one file who
+its parent is, and where a sister repo is the actual game research,
+cannot honestly claim "C — Alpha-stable, home-stable, dogfooded" —
+because "dogfooded as what, where" is ambiguous. Noted under
+*non-negotiables* below.
+
+=== Code and proofs
+
+[cols="2,1,3"]
+|===
+| Item | Count | Notes
+
+| Rust source files
+| 18 (`src/**.rs`) + 3 test files + 1 bench file
+| Library entry `src/lib.rs` with `#![forbid(unsafe_code)]` — good signal.
+
+| Total source LOC (verified by `wc -l`)
+| 5 294 total (src ≈ 3 957 + tests 1 339)
+| Largest modules: `src/editor/ui.rs` 573, `tests/e2e_test.rs` 550, `src/levels/mod.rs` 453, `tests/aspect_test.rs` 483, `src/editor/mod.rs` 357, `src/game/validation.rs` 349, `src/game_systems.rs` 349.
+
+| `src/verification/` content
+| 2 files, 360 LOC total
+| `mod.rs` (299 LOC, proof-export + SMT-string generation) + `z3_integration.rs` (61 LOC, feature-gated `z3::` SMT calls). *Not* the six-file `z3_bridge.rs` / `constraint_builder.rs` tree claimed in EXPLAINME.adoc.
+
+| `src/steam/` content
+| 1 file, 81 LOC
+| `steam/mod.rs` only. EXPLAINME claims `init.rs`, `achievements.rs`, `leaderboards.rs`, `cloud.rs` — *none exist on disk*.
+
+| `src/network/` content
+| 2 files, 127 LOC (`mod.rs` 29 + `client.rs` 98)
+| No `puzzle_broadcast.rs` as EXPLAINME claims.
+
+| `src/game/` content
+| 4 files: `board.rs` 223, `mod.rs` 93, `pieces.rs` 142, `validation.rs` 349
+| No `puzzles.rs` or `solver.rs` as EXPLAINME claims.
+
+| `src/ui/` content
+| 1 file (`mod.rs` 275)
+| No `puzzle_editor.rs` as EXPLAINME claims (the editor lives under `src/editor/`, not `src/ui/`).
+
+| `#![forbid(unsafe_code)]` in library
+| PRESENT at `src/lib.rs:6`
+| Zero `unsafe` blocks in `src/`. Grep found 1 `unsafe`/`unwrap`/`expect` hit in `src/network/client.rs:1` (header comment only, not an idiom count).
+
+| Dangerous-pattern scan (`believe_me`, `assert_total`, `Admitted`, `sorry`, `unsafeCoerce`, `Obj.magic`) in `src/`+`tests/`
+| *0*
+| Hits exist in `.machine_readable/MUST.contractile`, `.machine_readable/agent_instructions/methodology.a2ml`, and `.machine_readable/6a2/AGENTIC.a2ml` — these are *bans on use*, not uses.
+
+| `panic-attack assail` run record
+| Not cited in STATE or audit logs
+| Pre-commit rule standing; running it on this workspace is a routine follow-up, not a grading blocker.
+|===
+
+File-vs-EXPLAINME discrepancy summary: EXPLAINME.adoc's *File Map*
+lists 16 paths; on-disk 6 of those exist, 10 do not. Specifically
+missing: `src/game/puzzles.rs`, `src/game/solver.rs`,
+`src/ui/puzzle_editor.rs`, `src/verification/z3_bridge.rs`,
+`src/verification/constraint_builder.rs`,
+`src/network/puzzle_broadcast.rs`, `src/steam/init.rs`,
+`src/steam/achievements.rs`, `src/steam/leaderboards.rs`,
+`src/steam/cloud.rs`. This is a *documentation-drift* finding that
+directly harms the C grade's "deep per-file annotation" clause —
+the authoritative `EXPLAINME.adoc` claims files that don't exist.
+
+=== Test matrix — declared vs actual
+
+STATE.a2ml `[crg-c-status]` and `TEST-NEEDS.md` declare:
+
+[cols="2,1,1,2"]
+|===
+| Suite | Declared | Grep-verifiable | Notes
+
+| unit-tests (inline)      | 20  | 20 `#[test]` in src/**
+| `src/game/board.rs` 6, `src/game/validation.rs` 6, `src/levels/mod.rs` 3, `src/editor/mod.rs` 3, `src/verification/mod.rs` 2 — *matches exactly*.
+
+| smoke / E2E (`tests/e2e_test.rs`) | 25 | 20 `#[test]` attributes
+| File has 550 LOC; five of the "tests" referenced in TEST-NEEDS may be helper functions, not `#[test]` targets. 20 vs 25 is a ~20% overclaim.
+
+| property-tests (`tests/property_test.rs`) | 17 | 14 `#[test]` attributes + 5 `proptest!` blocks
+| proptest! macro blocks wrap their own case generation, so 17 "properties" can coexist with 14 `#[test]` attributes if the three extra live inside proptest! blocks as distinct invariants. Plausible, not grep-verifiable as "17".
+
+| aspect-tests (`tests/aspect_test.rs`) | 39 | 25 `#[test]` attributes
+| File has 483 LOC. 39 vs 25 is a 56% overclaim — the gap cannot be absorbed by proptest! (none in this file) or helper pattern. Most likely number of conceptual aspects, not test functions.
+
+| reflexive-tests          | "PASS (idempotency, state consistency)" | no separately-named suite
+| Reflexive properties likely live inside `tests/property_test.rs`; STATE lists as its own line.
+
+| contract-tests           | "PASS (board invariants)" | no separately-named suite
+| Similar — inside `property_test.rs`.
+
+| benchmarks               | 6 real, baselined | 1 bench file (`benches/proof_of_work_bench.rs`) with criterion groups
+| Commit `f9adea4 fix(bench): replace fraudulent black_box(42) benchmarks with real game logic` (honest cleanup). File uses real `populated_board()` fixture + criterion groups. Six criterion groups is plausible within one harness file.
+
+| *total-tests*            | *126+* | *79 `#[test]` attributes + 5 `proptest!` blocks*
+| The 126+ figure appears to double-count: 20 unit + 25 smoke + 17 property + 39 aspect + 6 bench + 17 reflexive/contract ≈ 124, but the 39 aspect number is itself over-counted, and benchmarks are not tests under v2.0 semantics. Grep-verifiable tests = *79*, not 126.
+|===
+
+Reconciliation: on-disk `#[test]`-family attributes total *79*
+(20 inline + 20 e2e + 25 aspect + 14 property). Plus *5* `proptest!`
+blocks. Counting property-block expansions charitably, the real test
+budget is ~80-95 depending on how you count proptest cases — not 126+.
+
+CI coverage: `.github/workflows/rust-ci.yml` parses cleanly (line 1
+`# SPDX-License-Identifier: PMPL-1.0-or-later`, line 2 `name: Rust CI`,
+line 3 `on: [push, pull_request]`). Last green run date not cited in
+STATE. `.hypatia/activity.jsonl` is a 1-line file (last-visit only,
+not a run log). No CI-badge link in README.
+
+=== Annotation depth
+
+v2.0 C requires **per-file and per-directory orientation**. Evidence:
+
+- `docs/` contains *only* `CITATIONS.adoc` (37 lines, BibTeX /
+  Harvard / OSCOLA / MLA / APA). No `docs/architecture/`,
+  `docs/decisions/`, `docs/governance/` (until this audit),
+  `docs/practice/`, `docs/specification/`. This is the *thinnest*
+  `docs/` tree of any C-candidate audited this session — even
+  thinner than neurophone's two-file tree.
+
+- Per-module/per-subtree README coverage: *0*. None of
+  `src/game/`, `src/ui/`, `src/editor/`, `src/levels/`,
+  `src/network/`, `src/steam/`, `src/verification/`, `benches/`,
+  `fuzz/`, `tests/`, `hooks/` carries an orienting README or
+  `mod.rs` doc-comment block. The `src/lib.rs` doc-comment is
+  five lines: one-line summary plus module list.
+
+- EXPLAINME.adoc (4 587 bytes) is substantive but *factually
+  wrong* — see file-vs-EXPLAINME discrepancy above. Ten of the
+  sixteen claimed source paths don't exist on disk. Substantively
+  updated in `866d634 docs: substantive CRG C annotation
+  (EXPLAINME.adoc)` but not verified against the tree before
+  landing. This is the opposite of "deep per-file annotation":
+  it is *fabricated per-file annotation*, which is worse than
+  none.
+
+- README.adoc header has the usual RSR badge stack and a clean
+  architecture tree, but lists features that don't exist in-tree at
+  production quality:
+  * "Multiplayer" — `src/network/` is 127 LOC of
+    client skeleton; no multiplayer protocol implementation.
+  * "Level Editor" — `src/editor/` is 930 LOC, substantive, but
+    headers claim a puzzle editor flow not wired into `main.rs`.
+  * "Steam Integration - Achievements, leaderboards, cloud saves"
+    — `src/steam/mod.rs` is 81 LOC, mostly `unlock_achievement` /
+    `get_username` stubs.
+  * "Z3 Verification" — real, but 61 LOC and feature-gated; the
+    code path verifies a hard-coded P-Q-R example, not arbitrary
+    puzzle states.
+
+- ROADMAP.adoc is the *untouched* `rsr-template-repo` placeholder
+  (generic "Initial development phase / Core functionality / Basic
+  documentation / CI/CD pipeline"). For a repo claiming C, the
+  roadmap should be populated with milestone evidence and dates.
+
+- `.machine_readable/6a2/` A2ml files other than STATE are near-empty
+  stubs: META 10 lines, ECOSYSTEM 11 lines, AGENTIC ~30 lines,
+  NEUROSYM ~30 lines, PLAYBOOK ~30 lines. Five of six 6a2 files are
+  schema skeletons, not documentation.
+
+=== Dogfooding / home-stable evidence
+
+STATE.a2ml has *no* `[dogfooding-status]` section. (Grep under
+`.machine_readable/` returns zero hits for `dogfoo`.) There is no
+`docs/practice/DOGFOOD-LOG.adoc`.
+
+Indirect / adjacent signals:
+
+- `.github/workflows/dogfood-gate.yml` — a *gate* workflow, not a
+  dogfood log. Presence of gate infrastructure without a
+  `[dogfooding-status]` entry catalogue is infrastructure for
+  dogfooding, not evidence of it (same pattern caught in the
+  neurophone audit).
+- EXPLAINME.adoc §"Dogfooted Across The Account" claims four
+  integrations:
+  * `panic-attacker` — "Scans Z3 bridge for unsafe FFI patterns".
+    No `src/verification/z3_bridge.rs` exists to scan. No
+    commit references panic-attack run output.
+  * `vql-ut` — "Encodes puzzle constraints as VQL-UT queries with
+    proof clauses". VQL was renamed VCL in 2026-04. No VCL or
+    VQL-UT references in the codebase.
+  * `reposystem` — "Models puzzle/solver as provider/consumer
+    graph". No reposystem integration file in-tree.
+  * `proven` — "Uses proven SafeMath library for overflow-safe
+    puzzle arithmetic". `Cargo.toml` lists no `proven` dep.
+
+None of the four claimed dogfood integrations is substantiated by
+in-tree code or `Cargo.toml` evidence. This is the same
+*fabricated-annotation* pattern as the File Map.
+
+- Completion-percentage = 50 in STATE concedes the project is
+  half built — lower than neurophone's 65 and materially
+  inconsistent with a "home-stable" C claim.
+- `.hypatia/activity.jsonl` is a single line, not a usage log.
+
+v2.0 C requires *continuous* home-context use with no known
+failures. The evidence does not support this for proof-of-work
+today. Nothing in the tree demonstrates that this game has been
+*played*.
+
+=== External validation (Grade B / A)
+
+No `[external-targets]`. No `[issues-fed-back]`. No `[field-signal]`.
+
+External-adjacent signals:
+
+- Dependabot PRs (#37-#41) — automated dependency bumps, not
+  external users. Not field feedback under v2.0.
+- Mirror remotes configured (bitbucket/codeberg/gitlab/sourcehut) —
+  mirror presence is not usage.
+- `CITATIONS.adoc` lists citation templates referencing a 2025 year
+  and a fictional "Hyper Polymath" author (contrary to the Author
+  Attribution rule: name should be "Jonathan D.A. Jewell"). This
+  is a separate attribution defect, not an external-validation
+  signal.
+
+Per v2.0, reaching B requires *6+ diverse external targets* actually
+using the software with feedback fed back. proof-of-work is at *0*.
+
+=== HYP-S005 canary
+
+HYP-S005 is the estate-wide detector for the pattern
+"self-declared C while evidence supports E or D". It matches the
+*flat* `crg-grade = "C"` key under `[metadata]` in STATE.a2ml and
+compares it to the per-suite counts and on-disk file inventory.
+
+proof-of-work would trigger HYP-S005 on three independent signals:
+
+1. Declared `total-tests = "126+"`, grep-verifiable `#[test]` attributes = 79 (37% overclaim).
+2. Declared `aspect-tests = 39`, grep-verifiable = 25 (56% overclaim).
+3. EXPLAINME.adoc File Map claims 16 source paths, 10 of which do
+   not exist on disk.
+
+No HYP-S005 suppression comment is present in the repo and none is
+warranted.
+
+=== Self-knowing policy violations
+
+- **Attribution**: `docs/CITATIONS.adoc` uses "Polymath, Hyper" /
+  "Hyper Polymath" as author across all citation templates.
+  Author Attribution rule says "ALWAYS Jonathan D.A. Jewell",
+  "NEVER hyperpolymath as author name". This is fixable in one
+  commit but counts as a standing CLAUDE.md rule breach.
+- **ROADMAP**: unfilled template placeholder in a repo claiming C.
+- **Anchor/clade disagreement**: ANCHOR.a2ml says parent =
+  boj-server; CLADE.a2ml says lineage = standalone. Pick one.
+- **Template-drift on 6a2**: five of six 6a2 files are stub
+  schemas, not content.
+
+== Grade x Evidence Matrix
+
+[cols="1,1,3,3"]
+|===
+| Grade | Met? | Evidence supporting | Evidence against / gaps
+
+| X
+| n/a
+| 79 `#[test]` attributes exist → not X
+| —
+
+| F
+| n/a
+| Not superseded (though `games-ecosystem/pow-the-game/` is a plausible successor-in-research); no harm signal.
+| Scope overlap with `pow-the-game` merits future consolidation decision.
+
+| E
+| ✓
+| >=1 test exists; 79 `#[test]` attributes across 8 files; property / aspect / e2e suites present; bench harness present; fuzz scaffold present.
+| —
+
+| D
+| ✓ *(earned)*
+| Structural shell complete: 27 workflows (parse cleanly), 6a2 layout, contractile trident, Justfile + Mustfile + Containerfile, `.well-known/`, LICENSES, SPDX headers on 20/20 source files, `#![forbid(unsafe_code)]` in lib, zero dangerous patterns in `src/`+`tests/`, zero committed merge conflicts. Scope documented in `README.adoc` + `EXPLAINME.adoc` (however inaccurately) + `PROOF-NEEDS.md` + `TEST-NEEDS.md`.
+| ROADMAP.adoc is unfilled template boilerplate; CITATIONS.adoc attribution wrong; five of six 6a2 files are stubs. None of these drops the D-floor, but they are the first things a C audit destroys.
+
+| C
+| *✗*
+| Rust code is real (5 294 LOC), uniformly SPDX-headered, `#![forbid(unsafe_code)]`, zero `unsafe` blocks, zero dangerous patterns, 79 real test attributes + 5 proptest! blocks, honest benchmark rewrite (`f9adea4`), real Z3 feature-gated integration, clusterfuzzlite scaffold.
+| *No `[dogfooding-status]` section.* Four dogfood integrations claimed in EXPLAINME are all unsubstantiated (panic-attacker/vql-ut/reposystem/proven — zero of four verifiable). *EXPLAINME File Map claims 10 source files that don't exist.* Aspect-test count overclaimed 56% (39 declared vs 25 actual). Zero per-directory READMEs for src subtrees. `docs/` is a single 37-line citations file. ROADMAP untouched template. 6a2 meta/ecosystem/agentic/neurosym/playbook are stubs. README features (Multiplayer, Workshop, Leaderboards) claimed in header are aspirational / skeletal. completion-percentage = 50 concedes half-built.
+
+| B
+| ✗
+| —
+| Zero external targets. Zero issues-fed-back. Zero field signal.
+
+| A
+| ✗
+| —
+| No field confirmation.
+|===
+
+== Verdict
+
+*Current CRG grade: **D (Alpha)**. Demote one grade from
+self-declared C.*
+
+Self-declared: *C*. Audited: *D*. One-grade honesty delta — smaller
+than neurophone's two-grade delta (neurophone had committed
+merge-conflict markers; proof-of-work does not) but still a demote.
+
+Reasoning (one sentence): proof-of-work passes the D-floor cleanly
+(workflows parse, SPDX is uniform, zero dangerous patterns, real
+test code, `#![forbid(unsafe_code)]`) but fails the C clauses on
+three independent axes — no `[dogfooding-status]` and no dogfood
+log, per-suite test counts overclaim by 37-56% against grep, and the
+authoritative `EXPLAINME.adoc` fabricates ten source paths and four
+"dogfooded-across-the-account" integrations that the codebase does
+not contain.
+
+The D grade is earned, not conservative-by-default, on three positive
+signals:
+
+1. Real Rust code, cleanly structured: 5 294 LOC across 18 source
+   files, `#![forbid(unsafe_code)]` at the library entry, zero
+   `unsafe` blocks in `src/`, zero dangerous patterns in `src/`
+   or `tests/`.
+2. Real test surface: 79 `#[test]`/`#[tokio::test]` attributes
+   across property / aspect / e2e / inline suites plus 5 `proptest!`
+   blocks plus a criterion bench harness that was honestly
+   de-fraudulented in `f9adea4`.
+3. Clean structural hygiene: 27 workflows that parse, SPDX on 20/20
+   sampled source files, LICENSES trident, `.well-known/`
+   complete, fuzz + clusterfuzzlite scaffold present, zero
+   committed merge-conflict markers.
+
+What blocks *immediate* promotion to C (do these first):
+
+. **Add `[dogfooding-status]` to STATE.a2ml** with concrete
+  done-entries: what was dogfooded, on which device/workflow, when,
+  evidence link. Or remove the C claim until there is real use.
+. **Fix EXPLAINME.adoc File Map.** Delete the ten non-existent
+  source paths. Replace with the actual six paths
+  (`src/lib.rs`, `src/main.rs`, `src/game/*.rs`, `src/editor/*.rs`,
+  `src/levels/*.rs`, `src/verification/*.rs`, `src/steam/mod.rs`,
+  `src/network/*.rs`, `src/ui/mod.rs`). Update File Map headers
+  accordingly.
+. **Reconcile test counts in STATE.a2ml and TEST-NEEDS.md with
+  grep.** Either rewrite the 14 missing aspect tests, or drop
+  `aspect-tests` from 39 to the grep-verifiable 25. Drop the
+  `total-tests = "126+"` claim until it is reconcilable.
+. **Fix or remove the four dogfood-integration claims in
+  EXPLAINME.adoc** (panic-attacker, vql-ut, reposystem, proven).
+  Either wire them in — `cargo.toml` deps + integration code —
+  or strike them.
+. **Add per-subtree READMEs** for `src/game/`, `src/editor/`,
+  `src/levels/`, `src/verification/`, `src/steam/`, `src/network/`,
+  `src/ui/`, `tests/`, `benches/`, `fuzz/`, `hooks/`.
+. **Populate ROADMAP.adoc** with real milestones + dates. Replace
+  the rsr-template-repo placeholder.
+. **Fill out the 6a2 stubs** (META, ECOSYSTEM, AGENTIC, NEUROSYM,
+  PLAYBOOK) with content appropriate to a game + SMT-verification
+  project.
+. **Reconcile ANCHOR.a2ml vs CLADE.a2ml** — pick one parent story
+  (standalone vs child-of-boj-server).
+. **Fix CITATIONS.adoc attribution**: "Jonathan D.A. Jewell",
+  not "Hyper Polymath".
+. **Scope decision vs `games-ecosystem/pow-the-game/`**: these two
+  repos overlap in stated purpose. Document in META.a2ml which is
+  the canonical project, or merge.
+
+What blocks promotion to B (after C):
+
+. Zero external targets. Need 6+ diverse — the natural set for a
+  game is players across platforms (Linux/Windows/Steam Deck),
+  across Bevy versions, across Z3 versions.
+. No external-contributor flow. Dependabot PRs don't count.
+. A game with no playtest evidence cannot feed back issues —
+  "home-stable, dogfooded" needs play logs, bug reports from a
+  second human, etc.
+
+== Notes on Non-Negotiables Respected by this Audit
+
+- The `#![forbid(unsafe_code)]` library attribute is respected as a
+  genuine safety signal and counted toward the D positive-signal set.
+- STATE.a2ml's `crg-c-status` block is internally self-consistent
+  with its own line items; what destroys the C claim is the gap
+  between those line items and the actual on-disk file/test/dogfood
+  evidence, not any internal contradiction inside STATE.
+- The overlap with `games-ecosystem/pow-the-game/` (a private,
+  AGPL-3.0, son-co-developable research project on distributed
+  computation over Steam Workshop) is flagged as an identity
+  question, not re-graded. A follow-up META.a2ml decision is
+  needed; that is a scope-and-governance action, not a CRG
+  grading action.
+- HYP-S005 would flag this repo under the existing
+  `[metadata] crg-grade = "C"` rule. No suppression is warranted.
+- Standing rules respected: PMPL-1.0-or-later SPDX on all source,
+  GitHub-only push origin (mirrors are informational remotes),
+  Rust (not Go / not TS / not Python).
+
+== STATE.a2ml update recommendation
+
+Recommended (do NOT execute as part of this audit) — edit
+`.machine_readable/6a2/STATE.a2ml`:
+
+[source,toml]
+----
+[metadata]
+project = "proof-of-work"
+version = "0.1.0"
+last-updated = "2026-04-18"
+status = "active"
+crg-grade = "D"                # was "C"
+crg-grade-previous = "C"       # audit trail
+crg-audit = "docs/governance/CRG-AUDIT-2026-04-18.adoc"
+crg-next-target = "C"
+
+[project-context]
+name = "proof-of-work"
+completion-percentage = 45     # was 50 — closer to evidence
+phase = "D-earned; C-lift needs dogfood log, File-Map fix, test reconciliation, per-directory READMEs."
+
+[test-coverage]
+unit-tests = 20                # confirmed (grep-verifiable)
+e2e-tests-test-attrs = 20      # declared 25, grep 20
+property-tests-test-attrs = 14 # declared 17, grep 14
+property-tests-proptest-blocks = 5
+aspect-tests-test-attrs = 25   # declared 39, grep 25 — largest overclaim
+benchmarks = "1 criterion bench file, multiple groups (populated_board fixture)"
+test-attributes-total = 79     # grep-verifiable
+# total-tests = "126+"         # dropped — not reconcilable
+
+[blockers]
+dogfood-log-missing = "No [dogfooding-status] section; four claimed integrations (panic-attacker, vql-ut, reposystem, proven) unsubstantiated."
+explainme-drift = "docs/File-Map claims 10 source paths that do not exist on disk."
+test-count-overclaim = "aspect-tests=39 vs grep=25; total-tests=126+ vs grep=79."
+roadmap-unfilled = "ROADMAP.adoc is the rsr-template-repo placeholder."
+ecosystem-overlap = "games-ecosystem/pow-the-game/ is a plausible successor; META.a2ml needs a canonical-project decision."
+attribution-defect = "docs/CITATIONS.adoc uses 'Hyper Polymath' as author; should be 'Jonathan D.A. Jewell'."
+----
+
+Demote target: *D*. Route-to-C is the nine-item fix list above.
+
+== Related Files
+
+- `.machine_readable/6a2/STATE.a2ml` — authoritative self-declared
+  state; recommend demote C→D with notes citing this audit.
+- `TEST-NEEDS.md` — declared 126+ tests; reconcile with
+  grep-verifiable 79 `#[test]` attributes.
+- `EXPLAINME.adoc` File Map — 10 of 16 claimed paths do not exist;
+  "Dogfooted Across The Account" table is fabricated.
+- `docs/CITATIONS.adoc` — "Hyper Polymath" author attribution
+  should be replaced with "Jonathan D.A. Jewell".
+- `ROADMAP.adoc` — unfilled rsr-template-repo placeholder.
+- `.machine_readable/anchors/ANCHOR.a2ml` vs
+  `.machine_readable/CLADE.a2ml` — parentage disagreement.
+- `games-ecosystem/pow-the-game/README.adoc` — overlapping
+  private research repo; scope-decision needed.
+- `docs/governance/CRG-LIFT-PLAN-2026-04-18.adoc` — *to be written*
+  if a C-lift sprint is scheduled.
+- `~/Desktop/CRG-STATE-INVENTORY.md` — estate inventory entry
+  for proof-of-work.
+
+_End of audit._
