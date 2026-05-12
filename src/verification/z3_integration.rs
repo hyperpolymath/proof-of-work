@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 
-use z3::ast::{Ast, Bool};
+use z3::ast::Bool;
 use z3::{Config, Context, Solver};
 
 use crate::game::Level;
