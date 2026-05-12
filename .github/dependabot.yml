@@ -18,6 +18,13 @@ updates:
     # `ignore: "*" patch` rule also silenced security PRs under GitHub\'s
     # current Dependabot behaviour. See rsr-template-repo commit 78b050e
     # and 007-lang/audits/audit-dependabot-automation-gap-2026-04-17.md.
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 10
+    groups:
+      cargo:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   
   # Note: npm/pip removed per RSR - use Deno (deno.json) for JS, Julia/Rust for data processing
