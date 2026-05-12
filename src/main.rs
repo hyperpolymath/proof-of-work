@@ -49,40 +49,31 @@ fn main() {
     let mut app = App::new();
 
     app
-    // Core Bevy plugins
-    .add_plugins(DefaultPlugins.set(WindowPlugin {
-        primary_window: Some(Window {
-            title: "Proof of Work - Logic Puzzle Game".into(),
-            resolution: (1280, 720).into(),
-            resizable: true,
+        // Core Bevy plugins
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Proof of Work - Logic Puzzle Game".into(),
+                resolution: (1280, 720).into(),
+                resizable: true,
+                ..default()
+            }),
             ..default()
-        }),
-        ..default()
-    }))
-
-    // Egui plugin for UI
-    .add_plugins(EguiPlugin::default())
-
-    // Initialize game state
-    .init_state::<GameState>()
-
-    // Player stats resource
-    .insert_resource(PlayerStats::default())
-
-    // Selected piece type resource
-    .insert_resource(SelectedPieceType::default())
-
-    // Level pack manager
-    .insert_resource(LevelPackManager::new(
-        PathBuf::from("./data/packs")
-    ))
-
-    // Editor state
-    .insert_resource(EditorState::default())
-
-    // Editor events (messages in Bevy 0.17)
-    .add_message::<TestLevelEvent>()
-    .add_message::<SaveLevelEvent>();
+        }))
+        // Egui plugin for UI
+        .add_plugins(EguiPlugin::default())
+        // Initialize game state
+        .init_state::<GameState>()
+        // Player stats resource
+        .insert_resource(PlayerStats::default())
+        // Selected piece type resource
+        .insert_resource(SelectedPieceType::default())
+        // Level pack manager
+        .insert_resource(LevelPackManager::new(PathBuf::from("./data/packs")))
+        // Editor state
+        .insert_resource(EditorState::default())
+        // Editor events (messages in Bevy 0.17)
+        .add_message::<TestLevelEvent>()
+        .add_message::<SaveLevelEvent>();
 
     // Insert Steam as a resource (if available)
     #[cfg(feature = "steam")]
@@ -107,67 +98,73 @@ fn main() {
     }
 
     app
-    // Startup systems (run once at launch)
-    .add_systems(Startup, (setup_camera, levels::ui::init_level_packs))
-
-    // Systems that run every frame in MainMenu state
-    .add_systems(Update, (
-        ui::main_menu_system,
-        ui::handle_menu_input,
-    ).run_if(in_state(GameState::MainMenu)))
-
-    // Level select state
-    .add_systems(Update, levels::ui::level_select_ui_system.run_if(in_state(GameState::LevelSelect)))
-    .add_systems(OnExit(GameState::LevelSelect), levels::ui::save_level_progress)
-
-    // Editor state
-    .add_systems(OnEnter(GameState::Editor), editor::ui::spawn_editor_grid)
-    .add_systems(Update, (
-        editor::ui::editor_ui_system,
-        editor::ui::editor_input_system,
-        editor::ui::update_editor_pieces,
-        editor::ui::handle_test_level,
-        editor::ui::handle_save_level,
-    ).run_if(in_state(GameState::Editor)))
-    .add_systems(OnExit(GameState::Editor), editor::ui::cleanup_editor)
-
-    // Systems when entering Playing state
-    .add_systems(OnEnter(GameState::Playing), (
-        game_systems::load_level,
-        game_systems::spawn_pieces,
-    ).chain())
-
-    // Systems that run every frame in Playing state
-    .add_systems(Update, (
-        game_systems::handle_input,
-        game_systems::update_board,
-        game_systems::update_piece_positions,
-        game_systems::check_connections,
-        game_systems::check_solution,
-        ui::update_hud,
-    ).run_if(in_state(GameState::Playing)));
+        // Startup systems (run once at launch)
+        .add_systems(Startup, (setup_camera, levels::ui::init_level_packs))
+        // Systems that run every frame in MainMenu state
+        .add_systems(
+            Update,
+            (ui::main_menu_system, ui::handle_menu_input).run_if(in_state(GameState::MainMenu)),
+        )
+        // Level select state
+        .add_systems(
+            Update,
+            levels::ui::level_select_ui_system.run_if(in_state(GameState::LevelSelect)),
+        )
+        .add_systems(
+            OnExit(GameState::LevelSelect),
+            levels::ui::save_level_progress,
+        )
+        // Editor state
+        .add_systems(OnEnter(GameState::Editor), editor::ui::spawn_editor_grid)
+        .add_systems(
+            Update,
+            (
+                editor::ui::editor_ui_system,
+                editor::ui::editor_input_system,
+                editor::ui::update_editor_pieces,
+                editor::ui::handle_test_level,
+                editor::ui::handle_save_level,
+            )
+                .run_if(in_state(GameState::Editor)),
+        )
+        .add_systems(OnExit(GameState::Editor), editor::ui::cleanup_editor)
+        // Systems when entering Playing state
+        .add_systems(
+            OnEnter(GameState::Playing),
+            (game_systems::load_level, game_systems::spawn_pieces).chain(),
+        )
+        // Systems that run every frame in Playing state
+        .add_systems(
+            Update,
+            (
+                game_systems::handle_input,
+                game_systems::update_board,
+                game_systems::update_piece_positions,
+                game_systems::check_connections,
+                game_systems::check_solution,
+                ui::update_hud,
+            )
+                .run_if(in_state(GameState::Playing)),
+        );
 
     // Steam callbacks (if available)
     #[cfg(feature = "steam")]
     app.add_systems(Update, steam_callbacks.run_if(in_state(GameState::Playing)));
 
     app
-    // Systems when entering LevelComplete state
-    .add_systems(OnEnter(GameState::LevelComplete), on_level_complete)
-
-    // Systems that run in LevelComplete state
-    .add_systems(Update, (
-        ui::show_completion_screen,
-        ui::handle_completion_input,
-    ).run_if(in_state(GameState::LevelComplete)))
-
-    // Systems when exiting Playing state
-    .add_systems(OnExit(GameState::Playing), game_systems::cleanup_level)
-
-    // Run the app
-    .run();
+        // Systems when entering LevelComplete state
+        .add_systems(OnEnter(GameState::LevelComplete), on_level_complete)
+        // Systems that run in LevelComplete state
+        .add_systems(
+            Update,
+            (ui::show_completion_screen, ui::handle_completion_input)
+                .run_if(in_state(GameState::LevelComplete)),
+        )
+        // Systems when exiting Playing state
+        .add_systems(OnExit(GameState::Playing), game_systems::cleanup_level)
+        // Run the app
+        .run();
 }
-
 
 // Startup systems
 fn setup_camera(mut commands: Commands) {

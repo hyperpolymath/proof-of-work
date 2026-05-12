@@ -151,8 +151,15 @@ pub fn level_select_ui_system(
                 egui::ScrollArea::vertical()
                     .id_salt("level_list")
                     .show(&mut columns[1], |ui| {
-                        for (level_idx, _level_id, name, description, is_selected, is_completed, best_time) in
-                            levels
+                        for (
+                            level_idx,
+                            _level_id,
+                            name,
+                            description,
+                            is_selected,
+                            is_completed,
+                            best_time,
+                        ) in levels
                         {
                             ui.group(|ui| {
                                 ui.horizontal(|ui| {

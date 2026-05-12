@@ -10,11 +10,20 @@ use super::{BoardState, GoalCondition, Level, LogicPiece};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationError {
     /// Piece is placed outside board boundaries.
-    OutOfBounds { x: u32, y: u32, max_x: u32, max_y: u32 },
+    OutOfBounds {
+        x: u32,
+        y: u32,
+        max_x: u32,
+        max_y: u32,
+    },
     /// Two pieces occupy the same position.
     OverlappingPieces { position: (u32, u32) },
     /// Wire endpoints are invalid.
-    InvalidWire { from: (u32, u32), to: (u32, u32), reason: String },
+    InvalidWire {
+        from: (u32, u32),
+        to: (u32, u32),
+        reason: String,
+    },
     /// No goals defined on the board.
     NoGoals,
     /// No assumptions defined on the board.
@@ -62,7 +71,10 @@ impl ValidationResult {
 }
 
 /// Validate a piece placement on the board.
-pub fn validate_piece_placement(board: &BoardState, piece: &LogicPiece) -> Result<(), ValidationError> {
+pub fn validate_piece_placement(
+    board: &BoardState,
+    piece: &LogicPiece,
+) -> Result<(), ValidationError> {
     let (x, y) = piece.position();
 
     // Check bounds
@@ -118,7 +130,11 @@ pub fn validate_piece_placement(board: &BoardState, piece: &LogicPiece) -> Resul
                 });
             }
             // Basic formula validation: must start with alphanumeric or parenthesis
-            if !formula.chars().next().map_or(false, |c| c.is_alphanumeric() || c == '(') {
+            if !formula
+                .chars()
+                .next()
+                .map_or(false, |c| c.is_alphanumeric() || c == '(')
+            {
                 return Err(ValidationError::InvalidFormula {
                     formula: formula.clone(),
                     reason: "Formula must start with identifier or parenthesis".to_string(),
@@ -161,8 +177,14 @@ pub fn validate_board(board: &BoardState) -> ValidationResult {
     }
 
     // Check for at least one assumption and one goal
-    let has_assumptions = board.pieces.iter().any(|p| matches!(p, LogicPiece::Assumption { .. }));
-    let has_goals = board.pieces.iter().any(|p| matches!(p, LogicPiece::Goal { .. }));
+    let has_assumptions = board
+        .pieces
+        .iter()
+        .any(|p| matches!(p, LogicPiece::Assumption { .. }));
+    let has_goals = board
+        .pieces
+        .iter()
+        .any(|p| matches!(p, LogicPiece::Goal { .. }));
 
     if !has_assumptions {
         errors.push(ValidationError::NoAssumptions);
@@ -221,7 +243,10 @@ pub fn validate_level(level: &Level) -> ValidationResult {
     match &level.goal_state {
         GoalCondition::ConnectNodes { start, end } => {
             if start.0 >= level.initial_state.width || start.1 >= level.initial_state.height {
-                warnings.push(format!("Goal start node {:?} is outside board bounds", start));
+                warnings.push(format!(
+                    "Goal start node {:?} is outside board bounds",
+                    start
+                ));
             }
             if end.0 >= level.initial_state.width || end.1 >= level.initial_state.height {
                 warnings.push(format!("Goal end node {:?} is outside board bounds", end));
@@ -296,11 +321,16 @@ mod tests {
     #[test]
     fn test_out_of_bounds() {
         let mut board = make_test_board();
-        board.pieces.push(LogicPiece::OrIntro { position: (15, 15) });
+        board
+            .pieces
+            .push(LogicPiece::OrIntro { position: (15, 15) });
 
         let result = validate_board(&board);
         assert!(!result.is_valid);
-        assert!(result.errors.iter().any(|e| matches!(e, ValidationError::OutOfBounds { .. })));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| matches!(e, ValidationError::OutOfBounds { .. })));
     }
 
     #[test]
@@ -310,7 +340,10 @@ mod tests {
 
         let result = validate_board(&board);
         assert!(!result.is_valid);
-        assert!(result.errors.iter().any(|e| matches!(e, ValidationError::OverlappingPieces { .. })));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| matches!(e, ValidationError::OverlappingPieces { .. })));
     }
 
     #[test]
@@ -326,7 +359,10 @@ mod tests {
 
         let result = validate_board(&board);
         assert!(!result.is_valid);
-        assert!(result.errors.iter().any(|e| matches!(e, ValidationError::NoAssumptions)));
+        assert!(result
+            .errors
+            .iter()
+            .any(|e| matches!(e, ValidationError::NoAssumptions)));
     }
 
     #[test]

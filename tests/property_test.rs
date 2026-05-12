@@ -7,8 +7,8 @@
 //! - Spatial query consistency
 //! - Formula preservation
 
-use proptest::prelude::*;
 use proof_of_work::{BoardState, LogicPiece};
+use proptest::prelude::*;
 
 // ============================================================================
 // Strategy definitions for property-based testing
@@ -26,8 +26,7 @@ fn position_strategy(width: u32, height: u32) -> impl Strategy<Value = (u32, u32
 
 /// Strategy to generate formula strings (alphanumeric + operators).
 fn formula_strategy() -> impl Strategy<Value = String> {
-    r"[A-Z][A-Z0-9]*( (AND|OR|IMPLIES|NOT) [A-Z][A-Z0-9]*)*"
-        .prop_map(|s| s.to_string())
+    r"[A-Z][A-Z0-9]*( (AND|OR|IMPLIES|NOT) [A-Z][A-Z0-9]*)*".prop_map(|s| s.to_string())
 }
 
 // ============================================================================

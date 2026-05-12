@@ -48,7 +48,10 @@ fn aspect_large_formula_string() {
     assert_eq!(board.piece_count(), 1);
 
     // Verify formula is stored
-    if let Some(LogicPiece::Assumption { formula: stored, .. }) = board.piece_at(0, 0) {
+    if let Some(LogicPiece::Assumption {
+        formula: stored, ..
+    }) = board.piece_at(0, 0)
+    {
         assert_eq!(stored.len(), 10000);
     }
 }
@@ -67,7 +70,10 @@ fn aspect_html_injection_in_formula() {
     assert!(board.place_piece(piece));
 
     // Verify HTML string is stored verbatim
-    if let Some(LogicPiece::Assumption { formula: stored, .. }) = board.piece_at(2, 2) {
+    if let Some(LogicPiece::Assumption {
+        formula: stored, ..
+    }) = board.piece_at(2, 2)
+    {
         assert_eq!(stored, formula);
     }
 }
@@ -274,7 +280,10 @@ fn aspect_large_board_with_1000_pieces() {
         }
     }
 
-    assert_eq!(placed_count, 100, "Should place 100 pieces (10x10 grid of 100x100 board)");
+    assert_eq!(
+        placed_count, 100,
+        "Should place 100 pieces (10x10 grid of 100x100 board)"
+    );
     assert_eq!(board.piece_count(), placed_count);
 }
 
@@ -283,7 +292,9 @@ fn aspect_spatial_query_on_large_board() {
     let mut board = BoardState::new(200, 200);
 
     // Place piece in center
-    assert!(board.place_piece(LogicPiece::AndIntro { position: (100, 100) }));
+    assert!(board.place_piece(LogicPiece::AndIntro {
+        position: (100, 100)
+    }));
 
     // Query with small radius
     let nearby = board.pieces_near(100, 100, 5);
@@ -338,7 +349,10 @@ fn aspect_chinese_characters_in_formula() {
     let mut board = BoardState::new(10, 10);
     assert!(board.place_piece(piece));
 
-    if let Some(LogicPiece::Assumption { formula: stored, .. }) = board.piece_at(1, 1) {
+    if let Some(LogicPiece::Assumption {
+        formula: stored, ..
+    }) = board.piece_at(1, 1)
+    {
         assert_eq!(stored, formula);
     }
 }
@@ -355,7 +369,10 @@ fn aspect_arabic_characters_in_formula() {
     let mut board = BoardState::new(10, 10);
     assert!(board.place_piece(piece));
 
-    if let Some(LogicPiece::Goal { formula: stored, .. }) = board.piece_at(2, 2) {
+    if let Some(LogicPiece::Goal {
+        formula: stored, ..
+    }) = board.piece_at(2, 2)
+    {
         assert_eq!(stored, formula);
     }
 }
@@ -372,7 +389,10 @@ fn aspect_emoji_in_formula() {
     let mut board = BoardState::new(10, 10);
     assert!(board.place_piece(piece));
 
-    if let Some(LogicPiece::Assumption { formula: stored, .. }) = board.piece_at(3, 3) {
+    if let Some(LogicPiece::Assumption {
+        formula: stored, ..
+    }) = board.piece_at(3, 3)
+    {
         assert_eq!(stored, formula);
     }
 }
@@ -389,7 +409,10 @@ fn aspect_mixed_scripts_in_formula() {
     let mut board = BoardState::new(10, 10);
     assert!(board.place_piece(piece));
 
-    if let Some(LogicPiece::Assumption { formula: stored, .. }) = board.piece_at(4, 4) {
+    if let Some(LogicPiece::Assumption {
+        formula: stored, ..
+    }) = board.piece_at(4, 4)
+    {
         assert_eq!(stored, formula);
     }
 }
@@ -398,11 +421,11 @@ fn aspect_mixed_scripts_in_formula() {
 fn aspect_whitespace_variants_in_formula() {
     // Test various whitespace characters
     let formulas = vec![
-        "P Q".to_string(),           // Regular space
-        "P\tQ".to_string(),          // Tab
-        "P\nQ".to_string(),          // Newline
-        "P\u{00A0}Q".to_string(),    // Non-breaking space
-        "P\u{2003}Q".to_string(),    // Em space
+        "P Q".to_string(),        // Regular space
+        "P\tQ".to_string(),       // Tab
+        "P\nQ".to_string(),       // Newline
+        "P\u{00A0}Q".to_string(), // Non-breaking space
+        "P\u{2003}Q".to_string(), // Em space
     ];
 
     let mut board = BoardState::new(10, 10);

@@ -17,20 +17,50 @@ use proof_of_work::{BoardState, GoalCondition, Level, LogicPiece};
 /// Create a populated board with assumptions, gates, goals, and wires.
 fn populated_board() -> BoardState {
     let pieces = vec![
-        LogicPiece::Assumption { formula: "P".into(), position: (2, 5) },
-        LogicPiece::Assumption { formula: "Q".into(), position: (2, 3) },
-        LogicPiece::Assumption { formula: "R".into(), position: (1, 7) },
-        LogicPiece::Goal { formula: "S".into(), position: (15, 5) },
-        LogicPiece::Goal { formula: "T".into(), position: (15, 10) },
+        LogicPiece::Assumption {
+            formula: "P".into(),
+            position: (2, 5),
+        },
+        LogicPiece::Assumption {
+            formula: "Q".into(),
+            position: (2, 3),
+        },
+        LogicPiece::Assumption {
+            formula: "R".into(),
+            position: (1, 7),
+        },
+        LogicPiece::Goal {
+            formula: "S".into(),
+            position: (15, 5),
+        },
+        LogicPiece::Goal {
+            formula: "T".into(),
+            position: (15, 10),
+        },
         LogicPiece::AndIntro { position: (5, 4) },
         LogicPiece::OrIntro { position: (8, 6) },
         LogicPiece::ImpliesIntro { position: (10, 4) },
         LogicPiece::NotIntro { position: (12, 8) },
-        LogicPiece::Wire { from: (3, 5), to: (5, 4) },
-        LogicPiece::Wire { from: (3, 3), to: (5, 4) },
-        LogicPiece::Wire { from: (6, 4), to: (8, 6) },
-        LogicPiece::Wire { from: (9, 6), to: (10, 4) },
-        LogicPiece::Wire { from: (11, 4), to: (15, 5) },
+        LogicPiece::Wire {
+            from: (3, 5),
+            to: (5, 4),
+        },
+        LogicPiece::Wire {
+            from: (3, 3),
+            to: (5, 4),
+        },
+        LogicPiece::Wire {
+            from: (6, 4),
+            to: (8, 6),
+        },
+        LogicPiece::Wire {
+            from: (9, 6),
+            to: (10, 4),
+        },
+        LogicPiece::Wire {
+            from: (11, 4),
+            to: (15, 5),
+        },
     ];
     BoardState::with_pieces(20, 20, pieces)
 }
@@ -43,7 +73,9 @@ fn verifiable_level() -> Level {
         description: "P AND Q implies R".into(),
         theorem: "(assert (=> (and P Q) R))".into(),
         initial_state: BoardState::new(10, 10),
-        goal_state: GoalCondition::ProveFormula { formula: "R".into() },
+        goal_state: GoalCondition::ProveFormula {
+            formula: "R".into(),
+        },
     }
 }
 
@@ -51,9 +83,18 @@ fn verifiable_level() -> Level {
 /// both assumptions and the goal).
 fn valid_proof_pieces() -> Vec<LogicPiece> {
     vec![
-        LogicPiece::Assumption { formula: "P".into(), position: (2, 5) },
-        LogicPiece::Assumption { formula: "Q".into(), position: (2, 3) },
-        LogicPiece::Goal { formula: "R".into(), position: (5, 4) },
+        LogicPiece::Assumption {
+            formula: "P".into(),
+            position: (2, 5),
+        },
+        LogicPiece::Assumption {
+            formula: "Q".into(),
+            position: (2, 3),
+        },
+        LogicPiece::Goal {
+            formula: "R".into(),
+            position: (5, 4),
+        },
         LogicPiece::AndIntro { position: (3, 4) },
     ]
 }
@@ -154,10 +195,19 @@ fn bench_validate_board(c: &mut Criterion) {
 fn bench_validate_piece_placement(c: &mut Criterion) {
     let board = populated_board();
     let pieces = [
-        LogicPiece::Assumption { formula: "X".into(), position: (0, 0) },
-        LogicPiece::Wire { from: (3, 3), to: (7, 7) },
+        LogicPiece::Assumption {
+            formula: "X".into(),
+            position: (0, 0),
+        },
+        LogicPiece::Wire {
+            from: (3, 3),
+            to: (7, 7),
+        },
         LogicPiece::AndIntro { position: (99, 99) }, // out of bounds
-        LogicPiece::Goal { formula: "".into(), position: (4, 4) }, // empty formula
+        LogicPiece::Goal {
+            formula: "".into(),
+            position: (4, 4),
+        }, // empty formula
     ];
 
     c.bench_function("validate_piece_placement_4_pieces", |b| {
@@ -178,9 +228,7 @@ fn bench_is_ready_for_verification(c: &mut Criterion) {
     let board = populated_board();
 
     c.bench_function("is_ready_for_verification", |b| {
-        b.iter(|| {
-            black_box(validation::is_ready_for_verification(&board))
-        });
+        b.iter(|| black_box(validation::is_ready_for_verification(&board)));
     });
 }
 
@@ -253,9 +301,18 @@ fn bench_verify_level_solution(c: &mut Criterion) {
 fn bench_verify_level_solution_invalid(c: &mut Criterion) {
     let level = verifiable_level();
     let pieces = vec![
-        LogicPiece::Assumption { formula: "P".into(), position: (0, 0) },
-        LogicPiece::Assumption { formula: "Q".into(), position: (0, 19) },
-        LogicPiece::Goal { formula: "R".into(), position: (19, 19) },
+        LogicPiece::Assumption {
+            formula: "P".into(),
+            position: (0, 0),
+        },
+        LogicPiece::Assumption {
+            formula: "Q".into(),
+            position: (0, 19),
+        },
+        LogicPiece::Goal {
+            formula: "R".into(),
+            position: (19, 19),
+        },
         LogicPiece::AndIntro { position: (10, 10) }, // too far from everything
     ];
 
@@ -272,11 +329,20 @@ fn bench_verify_level_solution_invalid(c: &mut Criterion) {
 /// Benchmark serialization of a LogicPiece to SMT format.
 fn bench_piece_to_smt(c: &mut Criterion) {
     let pieces = [
-        LogicPiece::Assumption { formula: "P".into(), position: (2, 5) },
-        LogicPiece::Goal { formula: "Q".into(), position: (8, 4) },
+        LogicPiece::Assumption {
+            formula: "P".into(),
+            position: (2, 5),
+        },
+        LogicPiece::Goal {
+            formula: "Q".into(),
+            position: (8, 4),
+        },
         LogicPiece::AndIntro { position: (5, 5) },
         LogicPiece::ImpliesIntro { position: (3, 3) },
-        LogicPiece::ForallIntro { position: (1, 1), variable: "x".into() },
+        LogicPiece::ForallIntro {
+            position: (1, 1),
+            variable: "x".into(),
+        },
     ];
 
     c.bench_function("piece_to_smt_5_pieces", |b| {
