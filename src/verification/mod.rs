@@ -78,7 +78,7 @@ fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
 /// For the vertical slice: check if pieces form a valid proof
 #[cfg(feature = "z3-verify")]
 pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
-    use z3::ast::{Ast, Bool};
+    use z3::ast::Bool;
     use z3::{Config, Context, Solver};
 
     let cfg = Config::new();

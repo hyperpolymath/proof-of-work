@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
+use super::{LeaderboardEntry, ProofSubmission, ServerResponse};
+use crate::verification::ExportedProof;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use crate::verification::ExportedProof;
-use super::{ProofSubmission, ServerResponse, LeaderboardEntry};
 
 const SERVER_URL: &str = "https://api.proofofwork.game";
 
@@ -16,25 +16,29 @@ impl NetworkClient {
     pub fn new(api_key: String) -> Self {
         Self {
             client: Client::builder()
-            .timeout(std::time::Duration::from_secs(30))
-            .build()
-            .expect("Failed to create HTTP client"),
+                .timeout(std::time::Duration::from_secs(30))
+                .build()
+                .expect("Failed to create HTTP client"),
             api_key,
         }
     }
 
-    pub async fn submit_proof(&self, proof: ExportedProof) -> Result<ServerResponse, Box<dyn std::error::Error>> {
+    pub async fn submit_proof(
+        &self,
+        proof: ExportedProof,
+    ) -> Result<ServerResponse, Box<dyn std::error::Error>> {
         let submission = ProofSubmission {
             proof: proof.clone(),
             signature: Self::sign_proof(&proof, &self.api_key),
         };
 
-        let response = self.client
-        .post(&format!("{}/api/v1/proofs", SERVER_URL))
-        .header("Authorization", format!("Bearer {}", self.api_key))
-        .json(&submission)
-        .send()
-        .await?;
+        let response = self
+            .client
+            .post(&format!("{}/api/v1/proofs", SERVER_URL))
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .json(&submission)
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             return Err(format!("Server returned error: {}", response.status()).into());
@@ -44,14 +48,18 @@ impl NetworkClient {
         Ok(server_response)
     }
 
-    pub async fn get_leaderboard(&self, limit: Option<u32>) -> Result<Vec<LeaderboardEntry>, Box<dyn std::error::Error>> {
+    pub async fn get_leaderboard(
+        &self,
+        limit: Option<u32>,
+    ) -> Result<Vec<LeaderboardEntry>, Box<dyn std::error::Error>> {
         let limit = limit.unwrap_or(100);
 
-        let response = self.client
-        .get(&format!("{}/api/v1/leaderboard", SERVER_URL))
-        .query(&[("limit", limit)])
-        .send()
-        .await?;
+        let response = self
+            .client
+            .get(&format!("{}/api/v1/leaderboard", SERVER_URL))
+            .query(&[("limit", limit)])
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             return Err(format!("Server returned error: {}", response.status()).into());
@@ -61,12 +69,15 @@ impl NetworkClient {
         Ok(leaderboard)
     }
 
-    pub async fn get_player_stats(&self) -> Result<PlayerStatsResponse, Box<dyn std::error::Error>> {
-        let response = self.client
-        .get(&format!("{}/api/v1/player/stats", SERVER_URL))
-        .header("Authorization", format!("Bearer {}", self.api_key))
-        .send()
-        .await?;
+    pub async fn get_player_stats(
+        &self,
+    ) -> Result<PlayerStatsResponse, Box<dyn std::error::Error>> {
+        let response = self
+            .client
+            .get(&format!("{}/api/v1/player/stats", SERVER_URL))
+            .header("Authorization", format!("Bearer {}", self.api_key))
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             return Err(format!("Server returned error: {}", response.status()).into());
@@ -77,11 +88,11 @@ impl NetworkClient {
     }
 
     fn sign_proof(proof: &ExportedProof, api_key: &str) -> String {
-        use sha2::{Sha256, Digest};
+        use sha2::{Digest, Sha256};
 
         let mut hasher = Sha256::new();
-        let proof_json = serde_json::to_string(proof)
-            .unwrap_or_else(|_| format!("{:?}", proof.proof_smt2));
+        let proof_json =
+            serde_json::to_string(proof).unwrap_or_else(|_| format!("{:?}", proof.proof_smt2));
         hasher.update(proof_json);
         hasher.update(api_key.as_bytes());
 

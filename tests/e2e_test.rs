@@ -106,7 +106,10 @@ fn e2e_place_and_remove_pieces() {
 
     // Verify removal was complete
     let after_removal = board.piece_at(5, 5);
-    assert!(after_removal.is_none(), "Position should be empty after removal");
+    assert!(
+        after_removal.is_none(),
+        "Position should be empty after removal"
+    );
 }
 
 #[test]
@@ -236,7 +239,12 @@ fn e2e_editor_place_pieces_save_cycle() {
     // Verify each piece is at expected position
     for piece in &pieces_to_place {
         let (x, y) = piece.position();
-        assert!(board.is_occupied(x, y), "Piece at ({},{}) should be occupied", x, y);
+        assert!(
+            board.is_occupied(x, y),
+            "Piece at ({},{}) should be occupied",
+            x,
+            y
+        );
     }
 }
 
@@ -491,9 +499,7 @@ fn e2e_pieces_at_board_boundaries() {
     let mut board = BoardState::new(width, height);
 
     // Place pieces at all four corners
-    assert!(board.place_piece(LogicPiece::AndIntro {
-        position: (0, 0),
-    }));
+    assert!(board.place_piece(LogicPiece::AndIntro { position: (0, 0) }));
     assert!(board.place_piece(LogicPiece::OrIntro {
         position: (width - 1, 0),
     }));

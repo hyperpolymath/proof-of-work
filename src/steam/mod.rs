@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
-use steamworks::*;
 use std::sync::Arc;
+use steamworks::*;
 
 pub struct SteamManager {
     client: Arc<Client>,
@@ -13,7 +13,7 @@ impl SteamManager {
         let (client, single) = Client::init()?;
         Ok(Self {
             client: Arc::new(client),
-           single,
+            single,
         })
     }
 

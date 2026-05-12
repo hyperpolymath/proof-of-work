@@ -4,7 +4,9 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
-use super::{EditorEntity, EditorPieceType, EditorState, EditorTool, SaveLevelEvent, TestLevelEvent};
+use super::{
+    EditorEntity, EditorPieceType, EditorState, EditorTool, SaveLevelEvent, TestLevelEvent,
+};
 use crate::game::{GoalCondition, LogicPiece};
 use crate::levels::LevelPackManager;
 use crate::states::GameState;
@@ -124,10 +126,7 @@ pub fn editor_ui_system(
 
             for piece_type in piece_types {
                 let selected = editor.selected_piece == Some(piece_type);
-                if ui
-                    .selectable_label(selected, piece_type.name())
-                    .clicked()
-                {
+                if ui.selectable_label(selected, piece_type.name()).clicked() {
                     editor.selected_piece = Some(piece_type);
                     editor.tool = EditorTool::Place;
                 }
@@ -173,10 +172,7 @@ pub fn editor_ui_system(
             ui.separator();
 
             ui.label("Name:");
-            if ui
-                .text_edit_singleline(&mut editor.level.name)
-                .changed()
-            {
+            if ui.text_edit_singleline(&mut editor.level.name).changed() {
                 editor.dirty = true;
             }
 
@@ -191,10 +187,7 @@ pub fn editor_ui_system(
 
             ui.add_space(5.0);
             ui.label("Theorem (SMT-LIB2):");
-            if ui
-                .text_edit_singleline(&mut editor.level.theorem)
-                .changed()
-            {
+            if ui.text_edit_singleline(&mut editor.level.theorem).changed() {
                 editor.dirty = true;
             }
 
@@ -207,14 +200,20 @@ pub fn editor_ui_system(
 
             ui.horizontal(|ui| {
                 ui.label("Width:");
-                if ui.add(egui::DragValue::new(&mut width).range(3..=20)).changed() {
+                if ui
+                    .add(egui::DragValue::new(&mut width).range(3..=20))
+                    .changed()
+                {
                     editor.set_grid_size(width as u32, height as u32);
                 }
             });
 
             ui.horizontal(|ui| {
                 ui.label("Height:");
-                if ui.add(egui::DragValue::new(&mut height).range(3..=20)).changed() {
+                if ui
+                    .add(egui::DragValue::new(&mut height).range(3..=20))
+                    .changed()
+                {
                     editor.set_grid_size(width as u32, height as u32);
                 }
             });
@@ -396,10 +395,7 @@ pub fn editor_input_system(
 }
 
 /// Spawn editor grid visualization
-pub fn spawn_editor_grid(
-    mut commands: Commands,
-    editor: Res<EditorState>,
-) {
+pub fn spawn_editor_grid(mut commands: Commands, editor: Res<EditorState>) {
     let half_width = editor.grid_width as f32 / 2.0;
     let half_height = editor.grid_height as f32 / 2.0;
 

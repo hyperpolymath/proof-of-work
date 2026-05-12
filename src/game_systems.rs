@@ -5,8 +5,8 @@
 use bevy::prelude::*;
 
 use crate::game::{
-    CurrentLevel, GameEntity, Level, LogicPiece, PlaceablePiece, PlayerCursor, PlayerPlaced,
-    PlayerStats, SelectedPieceType, BoardState, GoalCondition, PieceBundle,
+    BoardState, CurrentLevel, GameEntity, GoalCondition, Level, LogicPiece, PieceBundle,
+    PlaceablePiece, PlayerCursor, PlayerPlaced, PlayerStats, SelectedPieceType,
 };
 use crate::states::GameState;
 
@@ -81,11 +81,7 @@ pub fn spawn_pieces(
                     custom_size: Some(Vec2::new(78.0, 78.0)),
                     ..default()
                 },
-                Transform::from_xyz(
-                    (x as f32 - 4.5) * 80.0,
-                    (y as f32 - 4.5) * 80.0,
-                    -1.0,
-                ),
+                Transform::from_xyz((x as f32 - 4.5) * 80.0, (y as f32 - 4.5) * 80.0, -1.0),
                 GameEntity,
             ));
         }
@@ -131,12 +127,7 @@ pub fn handle_input(
     windows: Query<&Window>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     piece_query: Query<
-        (
-            Entity,
-            &LogicPiece,
-            &Transform,
-            Option<&PlayerPlaced>,
-        ),
+        (Entity, &LogicPiece, &Transform, Option<&PlayerPlaced>),
         Without<PlayerCursor>,
     >,
     mut commands: Commands,
