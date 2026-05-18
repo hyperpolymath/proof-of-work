@@ -1,0 +1,115 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Rust/SPARK Stance — proof-of-work
+:toc: macro
+:toclevels: 2
+
+toc::[]
+
+== Summary
+
+This repository's application logic is written in Rust (Bevy game engine
++ optional Z3). Per the estate language policy
+(`standards/rhodium-standard-repositories/spec/LANGUAGE-POLICY.adoc`
+§Terminology), *"Rust" means "Rust/SPARK"*: Rust is the primary
+implementation language now, but the project is *designed to admit
+SPARK/Ada verification modules* across a stable, Idris2-typed boundary,
+with Zig as the FFI layer. Rust here is never the ABI/API/FFI layer.
+
+This document is the project's compliance stance against that policy.
+Before this audit (2026-05-18) the crate was bare Rust with no seam, no
+SPARK admission path, and no stance doc — non-compliant. The seam below
+brings it into structural compliance; the remaining proof work is
+tracked in `PROOF-NEEDS.md`.
+
+== What is consensus-/correctness-critical here
+
+This is a single-player + leaderboard logic-puzzle game, *not* a
+distributed ledger. There is no nonce search, no difficulty-retarget
+loop, and no chain of blocks. The audit's blockchain-style invariant
+names map onto the real correctness-critical surface as follows:
+
+[cols="1,2,3",options="header"]
+|===
+| Audit framing | Real counterpart | Where in code
+
+| Nonce search soundness
+| Verification soundness — no false positives
+| `src/verification/mod.rs::verify_level_solution`,
+  `src/verification/z3_integration.rs::verify_formula`
+
+| Hash collision-resistance assumption
+| Submission-signature binding (SHA-256 keyed hash)
+| `src/network/client.rs::sign_proof`
+
+| Difficulty target monotonicity
+| Pack/level difficulty in range + non-decreasing progression
+| `src/levels/mod.rs` (`LevelPack::difficulty`, `next_level`)
+
+| Chain-extension validity
+| Board well-formedness preserved under placement/move
+| `src/game/board.rs::place_piece` / `move_piece`,
+  `src/game/validation.rs`
+|===
+
+== The seam
+
+[cols="1,3",options="header"]
+|===
+| File | Role
+
+| `src/abi/Types.idr`
+| Idris2 boundary types — faithful total models of `LogicPiece`,
+  `BoardState`, `Level`, `GoalCondition`, `ExportedProof`. Constructor
+  order is ABI-significant and matches the Rust enums.
+
+| `src/abi/Invariants.idr`
+| Type-level statements of invariants I1–I7. Discharged where provable
+  (I3 structure, result-code round-trip in Foreign); marked as
+  assumption/postulate where it is a hardness assumption (I6) or an
+  obligation the Rust does not yet establish (I1, I2, I4, I5, I7).
+
+| `src/abi/Foreign.idr`
+| Zig-FFI boundary: u32/u8 range obligations for marshalling, the stable
+  C-ABI `VerifyResult` codes, and the contract tying a `VerifyAccepted`
+  return to an I1 certificate.
+|===
+
+The Idris2 modules are written to be checkable in principle with
+`idris2 --check src/abi/Types.idr` etc. The Idris2 toolchain is *not yet
+wired into CI* (`.tool-versions` carries no `idris2` entry); wiring it is
+a tracked follow-up in `PROOF-NEEDS.md`.
+
+== SPARK/Ada admission path
+
+The boundary is the Idris2 seam above. A future SPARK/Ada
+re-implementation of the verifier (the highest-value target — see
+`Invariants.idr` I1/I2) sits on the far side of
+`Foreign.acceptedImpliesVerified` without changing the contract: it must
+return `VerifyAccepted` only when it can produce a `VerifiedSolution`
+certificate. No SPARK code exists yet; the seam exists so it *can* be
+added without redesign, which is exactly what §Terminology requires of a
+"designed to admit SPARK/Ada" Rust project.
+
+== Honest gaps
+
+* The non-Z3 (`#[cfg(not(feature="z3-verify"))]`) verifier accepts on
+  connectivity alone with *no* SMT step (`src/verification/mod.rs`). This
+  is a real soundness defect (Invariant I2, postulated/owed), not just a
+  missing proof.
+* `verify_formula` / `validate_proof_locally` in
+  `src/verification/z3_integration.rs` do not parse the level's actual
+  theorem — they assert a hardcoded `P,Q ⇒ R` shape. Soundness for
+  arbitrary levels is unestablished.
+* `sign_proof` is a keyed SHA-256 hash, not a MAC/signature scheme;
+  integrity is conditional on SHA-256 hardness (I6) and the construction
+  has known keyed-hash caveats out of seam scope.
+* The repo's own `.claude/CLAUDE.md` language table (ReScript/Tauri/Deno)
+  is stale estate drift and is superseded by the estate policy and this
+  stance doc; it should be reconciled separately.
+
+== References
+
+* `standards/rhodium-standard-repositories/spec/LANGUAGE-POLICY.adoc`
+  §Terminology, §"Rust is never the ABI"
+* `PROOF-NEEDS.md` (this repo) — invariant ledger and priorities
+* Estate exemplar seam: `verisimdb/src/abi/{Types,Layout,Foreign}.idr`
