@@ -1,0 +1,22 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- Build/typecheck package for the proof-of-work Rust↔SPARK ABI seam.
+--
+-- The seam modules are namespaced `ProofOfWork.ABI.*`; Idris2 requires
+-- the on-disk path to mirror the module path, so the sources live under
+-- `ProofOfWork/ABI/`. Before this package existed the files sat flat in
+-- `src/abi/` and the seam DID NOT BUILD (`import ProofOfWork.ABI.Types`
+-- failed: "Module name does not match file name") — i.e. the 2026-05-18
+-- seam was structurally present but never machine-checked. This .ipkg
+-- makes it actually verifiable; CI (.github/workflows/abi-verify.yml)
+-- runs `idris2 --build` on every change so the discharged proofs
+-- (e.g. Invariants.builtinPackMonotone) cannot silently regress.
+
+package proof-of-work-abi
+version = 0.1.0
+authors = "Jonathan D.A. Jewell (hyperpolymath)"
+license = "PMPL-1.0-or-later"
+sourcedir = "."
+
+modules = ProofOfWork.ABI.Types
+        , ProofOfWork.ABI.Foreign
+        , ProofOfWork.ABI.Invariants

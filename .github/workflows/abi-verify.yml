@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# abi-verify.yml — machine-checks the Rust↔SPARK ABI seam.
+#
+# The seam (src/abi/ProofOfWork/ABI/{Types,Foreign,Invariants}.idr) states
+# the consensus-/correctness-critical invariants I1–I7 (see PROOF-NEEDS.md).
+# Some are DISCHARGED proofs (e.g. Invariants.builtinPackMonotone,
+# decNonDecreasing); the rest are explicit erased OWED obligations or the
+# I6 cryptographic-hardness ASSUMPTION.
+#
+# This gate exists so the discharged proofs cannot silently regress and an
+# OWED postulate cannot quietly become a `believe_me`. Mirrors the
+# stapeln cerro-torre Idris2 job (snazzybucket/idris2 container, same image
+# the estate already proves against). HARD GATE.
+
+name: ABI Seam Verification
+
+on:
+  pull_request:
+    paths:
+      - 'src/abi/**'
+      - '.github/workflows/abi-verify.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/abi/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  idris2-abi:
+    name: Idris2 ABI seam (proof-of-work-abi.ipkg)
+    runs-on: ubuntu-latest
+    container:
+      image: snazzybucket/idris2:latest  # estate-standard Idris2 image
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Build (typecheck) the ABI seam
+        working-directory: src/abi
+        run: |
+          idris2 --version
+          # --build typechecks every module in the .ipkg in dependency
+          # order. A real regression (ill-typed lemma, a discharged proof
+          # that stops reducing, a stray `?hole`/`believe_me`) fails here.
+          # The intentional erased OWED postulates and the I6 hardness
+          # ASSUMPTION are well-typed and do NOT fail the build — they are
+          # tracked in PROOF-NEEDS.md, not hidden.
+          idris2 --build proof-of-work-abi.ipkg
