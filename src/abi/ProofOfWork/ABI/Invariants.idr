@@ -127,9 +127,20 @@ public export
 --------------------------------------------------------------------------------
 
 ||| All pieces are within board bounds.
+|||
+||| Defined by structural recursion rather than Prelude `all`: Prelude
+||| `all`/`any` are `foldl`/Monoid-based and do NOT reduce on `::`, which
+||| blocks the I3 discharge below. This form is extensionally identical
+||| (and a more faithful model of the Rust `for piece in &self.pieces`
+||| loop), and reduces definitionally on the cons that `placePiece` adds.
+public export
+allInBoundsGo : BoardState -> List LogicPiece -> Bool
+allInBoundsGo b []        = True
+allInBoundsGo b (p :: ps) = inBounds b (position p) && allInBoundsGo b ps
+
 public export
 allInBounds : BoardState -> Bool
-allInBounds b = all (\p => inBounds b (position p)) b.pieces
+allInBounds b = allInBoundsGo b b.pieces
 
 ||| No two pieces share a primary position (mirrors the overlap rule in
 ||| validate_board / is_occupied).
@@ -154,20 +165,96 @@ placePiece b pc =
     then Just (MkBoardState b.width b.height (pc :: b.pieces))
     else Nothing
 
-||| I3 (TRUE, DISCHARGEABLE — OWED). If the input board is well-formed
-||| and `placePiece` succeeds, the resulting board is still well-formed:
-||| the guard `inBounds && !isOccupied` establishes both conjuncts for
-||| the new head and the tail is unchanged. This is a genuine theorem
-||| (not a defect, not a hardness assumption). A fully machine-checked
-||| Idris2 discharge requires cons-distribution lemmas for the Prelude
-||| `all`/`any` (which are `foldl`/Monoid-based and do not reduce on
-||| `::`); that lemma infrastructure is tracked in PROOF-NEEDS.md I3.
-||| Stated erased so the obligation is explicit and discoverable.
+||| Just is injective (local; Prelude does not export `justInjective`).
+justInj : {0 x, y : a} -> the (Maybe a) (Just x) = Just y -> x = y
+justInj Refl = Refl
+
+||| `inBounds` depends on the board only through width/height, so two
+||| boards agreeing on those agree on `inBounds` at every position.
+inBoundsCong :
+  (b1, b2 : BoardState) ->
+  b1.width = b2.width -> b1.height = b2.height ->
+  (q : Pos) -> inBounds b1 q = inBounds b2 q
+inBoundsCong b1 b2 wEq hEq (MkPos px py) =
+  rewrite wEq in rewrite hEq in Refl
+
+||| Hence `allInBoundsGo` is irrelevant to any board change that
+||| preserves width/height (needed because it cannot reduce over the
+||| abstract `b.pieces`, so `allInBoundsGo b ys` and
+||| `allInBoundsGo b' ys` are not definitionally equal even when b/b'
+||| share width/height).
+allInBoundsGoCong :
+  (b1, b2 : BoardState) ->
+  b1.width = b2.width -> b1.height = b2.height ->
+  (ys : List LogicPiece) ->
+  allInBoundsGo b1 ys = allInBoundsGo b2 ys
+allInBoundsGoCong b1 b2 wEq hEq [] = Refl
+allInBoundsGoCong b1 b2 wEq hEq (p :: ps) =
+  rewrite inBoundsCong b1 b2 wEq hEq (position p) in
+  rewrite allInBoundsGoCong b1 b2 wEq hEq ps in Refl
+
+||| Cons-introduction for `allInBoundsGo` (it reduces on `::` to
+||| `head && tail`; this lemma packages the lazy-`&&` `So` plumbing with
+||| concrete types so the call site stays metavariable-free).
+allInBoundsCons :
+  (bd : BoardState) -> (x : LogicPiece) -> (xs : List LogicPiece) ->
+  So (inBounds bd (position x)) -> So (allInBoundsGo bd xs) ->
+  So (allInBoundsGo bd (x :: xs))
+allInBoundsCons bd x xs hx hxs = andSo (hx, hxs)
+
+||| Cons-introduction for `noOverlap` (same rationale). The head
+||| hypothesis is exactly `not (isOccupied bd (position x))` up to alpha
+||| (`isOccupied bd q = any (\p => position p == q) bd.pieces`).
+noOverlapCons :
+  (x : LogicPiece) -> (xs : List LogicPiece) ->
+  So (not (any (\q => position q == position x) xs)) ->
+  So (noOverlap xs) ->
+  So (noOverlap (x :: xs))
+noOverlapCons x xs hh ht = andSo (hh, ht)
+
+||| `Nothing = Just _` is uninhabited (local helper for the failed-guard
+||| branch of the I3 discharge).
+nothingNotJust : {0 x : a} -> the (Maybe a) Nothing = Just x -> Void
+nothingNotJust Refl impossible
+
+||| I3 (DISCHARGED). If the input board is well-formed and `placePiece`
+||| succeeds, the resulting board is still well-formed. Genuine theorem,
+||| now machine-checked (no postulate, no escape): `placePiece` unfolds
+||| definitionally to its `if`; inverting the guard gives
+||| `So (inBounds b (position pc))` and
+||| `So (not (isOccupied b (position pc)))`, and the success branch fixes
+||| `b' = MkBoardState b.width b.height (pc :: b.pieces)`. The new head
+||| discharges both conjuncts; the tail (`allInBoundsGo`/`noOverlap` over
+||| `b.pieces`) is unchanged because `b'` shares `b`'s width/height, so
+||| `inBounds b' = inBounds b` definitionally. `noOverlap`'s head check
+||| is, up to alpha, exactly `not (isOccupied b (position pc))`.
 public export
-0 placePreservesWF :
+placePreservesWF :
   (b : BoardState) -> WellFormed b ->
   (pc : LogicPiece) -> (b' : BoardState) ->
   placePiece b pc = Just b' -> WellFormed b'
+placePreservesWF b (wfA, wfN) pc b' prf
+    with (inBounds b (position pc) && not (isOccupied b (position pc)))
+         proof gpf
+  placePreservesWF b (wfA, wfN) pc b' prf | True =
+    let soPair : ( So (inBounds b (position pc))
+                 , So (not (isOccupied b (position pc))) )
+        soPair = soAnd (eqToSo gpf)
+        bEq : b' = MkBoardState b.width b.height (pc :: b.pieces)
+        bEq = sym (justInj prf)
+        aibB : So (allInBoundsGo b (pc :: b.pieces))
+        aibB = allInBoundsCons b pc b.pieces (fst soPair) wfA
+        aib : So (allInBoundsGo (MkBoardState b.width b.height (pc :: b.pieces))
+                                (pc :: b.pieces))
+        aib = rewrite sym (allInBoundsGoCong b
+                             (MkBoardState b.width b.height (pc :: b.pieces))
+                             Refl Refl (pc :: b.pieces)) in aibB
+        nov : So (noOverlap (pc :: b.pieces))
+        nov = noOverlapCons pc b.pieces (snd soPair) wfN
+        wf' : WellFormed (MkBoardState b.width b.height (pc :: b.pieces))
+        wf' = (aib, nov)
+    in rewrite bEq in wf'
+  placePreservesWF b (wfA, wfN) pc b' prf | False = void (nothingNotJust prf)
 
 --------------------------------------------------------------------------------
 -- I4. Level-pack solvability  (NO UNSOLVABLE GENERATED PUZZLES)
