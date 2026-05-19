@@ -1,5 +1,16 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # SPDX-FileCopyrightText: 2025 hyperpolymath
+#
+# Retained per standards#102 rule 3 (KEEP+DEP). guix.scm mirrors the
+# runtime/graphics dep set (pkg-config, rust + cargo, z3, alsa-lib,
+# eudev, and the dev variant's xorg/wayland/libxkbcommon/vulkan-loader);
+# this flake's devShell is the SOLE source of the Rust dev-tool surface
+# and linker convenience kit not carried by Guix: just, cargo-edit,
+# cargo-audit, cargo-outdated, cargo-tarpaulin, cargo-deny, cargo-watch,
+# jq, clang, mold, vulkan-headers, plus rust-analyzer/clippy/rustfmt as
+# rust-overlay extensions. The sealed Containerfile covers the product
+# build only. Remove only once those dev tools are reachable via Guix
+# (or pulled into the sealed container).
 {
   description = "Proof-of-Work puzzle game library with Bevy";
 
