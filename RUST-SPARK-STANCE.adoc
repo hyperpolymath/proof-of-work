@@ -57,27 +57,38 @@ names map onto the real correctness-critical surface as follows:
 |===
 | File | Role
 
-| `src/abi/Types.idr`
+| `src/abi/ProofOfWork/ABI/Types.idr`
 | Idris2 boundary types — faithful total models of `LogicPiece`,
   `BoardState`, `Level`, `GoalCondition`, `ExportedProof`. Constructor
   order is ABI-significant and matches the Rust enums.
 
-| `src/abi/Invariants.idr`
-| Type-level statements of invariants I1–I7. Discharged where provable
-  (I3 structure, result-code round-trip in Foreign); marked as
-  assumption/postulate where it is a hardness assumption (I6) or an
-  obligation the Rust does not yet establish (I1, I2, I4, I5, I7).
+| `src/abi/ProofOfWork/ABI/Invariants.idr`
+| Type-level statements of invariants I1–I7. **I5 is a DISCHARGED,
+  machine-checked proof** (`decNonDecreasing` + `builtinPackMonotone`).
+  **I6 is an explicit cryptographic-hardness ASSUMPTION**
+  (`sha256CollisionResistant`). I1–I4 and I7 are stated as erased
+  **OWED** obligations the Rust does not yet establish. Authoritative
+  per-ID status: `PROOF-NEEDS.md` § Invariant register.
 
-| `src/abi/Foreign.idr`
+| `src/abi/ProofOfWork/ABI/Foreign.idr`
 | Zig-FFI boundary: u32/u8 range obligations for marshalling, the stable
   C-ABI `VerifyResult` codes, and the contract tying a `VerifyAccepted`
   return to an I1 certificate.
+
+| `src/abi/proof-of-work-abi.ipkg`
+| Idris2 package mapping the `ProofOfWork.ABI.*` namespace to the source
+  tree. Before 2026-05-19 the modules sat flat in `src/abi/` and the seam
+  **did not build** (`import ProofOfWork.ABI.Types` failed) — present but
+  never machine-checked. This package makes it actually verifiable.
 |===
 
-The Idris2 modules are written to be checkable in principle with
-`idris2 --check src/abi/Types.idr` etc. The Idris2 toolchain is *not yet
-wired into CI* (`.tool-versions` carries no `idris2` entry); wiring it is
-a tracked follow-up in `PROOF-NEEDS.md`.
+The seam is now machine-checked: `idris2 --build proof-of-work-abi.ipkg`
+(run from `src/abi/`) typechecks all three modules, and
+`.github/workflows/abi-verify.yml` enforces it on every change to
+`src/abi/**` (estate-standard `snazzybucket/idris2` container, mirroring
+the stapeln cerro-torre Idris2 gate). The discharged proofs therefore
+cannot silently regress, and an OWED postulate cannot quietly become a
+`believe_me`.
 
 == SPARK/Ada admission path
 
