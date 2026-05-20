@@ -280,6 +280,14 @@ pub fn validate_level(level: &Level) -> ValidationResult {
 
 /// Check if a board state is ready for proof verification.
 /// Returns true if the board has valid structure for verification.
+//
+// PROOF-OBLIGATION I4 (OWED): level-pack solvability. Every shipped or
+// generated level must admit at least one piece configuration the
+// verifier accepts. This readiness check is necessary but not sufficient:
+// it only confirms structural completeness (>=3 pieces of the right
+// kinds). A solver-side existence witness (`packLevelsSolvable`) would
+// require the generator to emit a witness solution alongside the level.
+// See: src/abi/ProofOfWork/ABI/Invariants.idr I4 (packLevelsSolvable)
 pub fn is_ready_for_verification(board: &BoardState) -> bool {
     let result = validate_board(board);
     result.is_valid && board.piece_count() >= 3 // At least assumption, gate, and goal

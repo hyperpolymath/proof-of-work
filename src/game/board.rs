@@ -47,6 +47,14 @@ impl BoardState {
 
     /// Add a piece to the board if the position is valid and unoccupied.
     /// Returns true if the piece was placed successfully.
+    //
+    // PROOF-OBLIGATION I3 (DISCHARGED): well-formedness preservation. A
+    // placement returning `true` preserves "all pieces in bounds AND no
+    // two pieces share a primary position". Machine-checked in Idris2 as
+    // `placePreservesWF` (no postulate, no `believe_me`); the Rust guard
+    // here (`in_bounds && !is_occupied`) is exactly the precondition the
+    // theorem inverts.
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I3 (placePreservesWF)
     pub fn place_piece(&mut self, piece: LogicPiece) -> bool {
         let (x, y) = piece.position();
 

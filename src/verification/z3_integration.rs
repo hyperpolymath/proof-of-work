@@ -6,6 +6,12 @@ use z3::{Config, Context, Solver};
 use crate::game::Level;
 
 /// Verify a level solution using Z3 SMT solver (simple boolean check)
+//
+// PROOF-OBLIGATION I1 (OWED): same soundness contract as
+// `verification::mod::verify_level_solution` — a `true` return must imply
+// the SMT entailment actually holds (here directly via Z3 UNSAT-on-¬goal).
+// Returns `bool`; the entailment witness is not surfaced.
+// See: src/abi/ProofOfWork/ABI/Invariants.idr I1
 pub fn verify_formula(level: &Level) -> bool {
     let cfg = Config::new();
     let ctx = Context::new(&cfg);
