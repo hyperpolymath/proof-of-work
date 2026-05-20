@@ -18,33 +18,43 @@ module ProofOfWork.ABI.Foreign
 import ProofOfWork.ABI.Types
 import ProofOfWork.ABI.Invariants
 import Data.Nat
+import Data.So
 
 %default total
 
 --------------------------------------------------------------------------------
 -- Fixed-width range obligations
+--
+-- Bounds are `Integer`, not `Nat`. A `Nat` constant of 2^32 forces the
+-- Idris2 0.8.0 data-constructor elaborator to reduce the value when it
+-- appears under `LT n u32Max` inside `MkInU32`'s type, which expands the
+-- literal to ~4×10^9 `S` constructors and hangs `--build`. The boundary
+-- predicate is therefore expressed as `So (natToInteger n < u32Max)`,
+-- which is propositionally equivalent (the Rust `u32` round-trips to
+-- precisely the Nats with `natToInteger n < 2^32`) but does not trigger
+-- unary expansion. Do not rewrite back to `LT n u32Max`.
 --------------------------------------------------------------------------------
 
 ||| u32 upper bound (2^32). Position coordinates crossing the FFI must
 ||| fit; the Rust type guarantees this, the Idris2 Nat model does not, so
 ||| the obligation is made explicit here.
 public export
-u32Max : Nat
+u32Max : Integer
 u32Max = 4294967296
 
 ||| Proof-carrying "this Nat fits in a u32".
 public export
 data InU32 : Nat -> Type where
-  MkInU32 : (n : Nat) -> LT n Foreign.u32Max -> InU32 n
+  MkInU32 : (n : Nat) -> So (natToInteger n < Foreign.u32Max) -> InU32 n
 
 ||| u8 upper bound (2^8) — for `LevelPack.difficulty`.
 public export
-u8Max : Nat
+u8Max : Integer
 u8Max = 256
 
 public export
 data InU8 : Nat -> Type where
-  MkInU8 : (n : Nat) -> LT n Foreign.u8Max -> InU8 n
+  MkInU8 : (n : Nat) -> So (natToInteger n < Foreign.u8Max) -> InU8 n
 
 ||| A position is FFI-marshalable iff both coordinates fit in u32.
 public export
