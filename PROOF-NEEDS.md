@@ -42,13 +42,18 @@ establish.
 
 ## What Needs Proving (priority order)
 
+Each row's "Where" column points at the Rust function carrying a matching
+`PROOF-OBLIGATION I_n` comment, so grep for `PROOF-OBLIGATION I2` (etc.)
+locates the obligation site from the Rust side; the seam docstring in
+`src/abi/ProofOfWork/ABI/Invariants.idr` points the other way.
+
 | Component | What | Why | Maps to | Where |
 |-----------|------|-----|---------|-------|
-| Mock verifier (I2) | Mock must not accept what Z3 rejects | No-Z3 builds otherwise grant false wins | I2 (defect) | **Rust code defect** — `src/verification/mod.rs`; needs design call (mock weakening or removal). Not Idris2-tractable in isolation. |
-| Cryptographic verification (I1) | Positive verdict returns/justifies a certificate | The game's core mechanic: "prove your work, literally" | I1 | **Rust API change** — verifier must return the `VerifiedSolution` certificate the seam already types. Idris2 statement waits on that. |
-| Puzzle generation (I4) | Generated puzzles always solvable | Unsolvable puzzles break the game | I4 | **Rust solver-side** — needs a generator that emits an existence witness; until then the Idris2 statement is intentionally unprovable. |
-| Pack round-trip (I7) | `load . save = id` on well-formed packs | Community-pack corruption across disk | I7 (now ASSUMPTION) | Discharge route: property-test the Rust serde against `serdeRoundTripCorrect`, or write a SPARK proof of the encoder/decoder pair. Not blocking. |
-| Level progression (I5) | Loader must call `decNonDecreasing` per pack | Non-monotonic difficulty breaks progression | I5 (validator done) | **Rust caller-side** — must invoke the discharged decision procedure at load time. |
+| Mock verifier (I2) | Mock must not accept what Z3 rejects | No-Z3 builds otherwise grant false wins | I2 (defect) | **Rust code defect** — `src/verification/mod.rs::verify_level_solution` (`#[cfg(not(feature="z3-verify"))]` body). Needs design call (mock weakening to a non-accepting verdict, or removal). Not Idris2-tractable in isolation. |
+| Cryptographic verification (I1) | Positive verdict returns/justifies a certificate | The game's core mechanic: "prove your work, literally" | I1 | **Rust API change** — `src/verification/mod.rs::verify_level_solution` (`#[cfg(feature="z3-verify")]` body) and `src/verification/z3_integration.rs::verify_formula` both return `bool`; must return the `VerifiedSolution` certificate the seam already types. Idris2 statement waits on that. |
+| Puzzle generation (I4) | Generated puzzles always solvable | Unsolvable puzzles break the game | I4 | **Rust solver-side** — readiness check is `src/game/validation.rs::is_ready_for_verification` (necessary but not sufficient). A generator that emits an existence witness alongside the level would inhabit `packLevelsSolvable`; until then the Idris2 statement is intentionally unprovable. |
+| Pack round-trip (I7) | `load . save = id` on well-formed packs | Community-pack corruption across disk | I7 (now ASSUMPTION) | `src/levels/mod.rs::LevelPack::save` / `::load`. Discharge route: property-test the Rust serde against `serdeRoundTripCorrect`, or write a SPARK proof of the encoder/decoder pair. Not blocking. |
+| Level progression (I5) | Loader must call `decNonDecreasing` per pack | Non-monotonic difficulty breaks progression | I5 (validator done) | **Rust caller-side** — `src/levels/mod.rs::LevelPack::load` must invoke the discharged decision procedure on the loaded difficulty sequence; `LevelPackManager::next_level` is advance-by-index only and intentionally does not re-check. |
 
 I3 is **DISCHARGED** (see register above); not in the remaining-proof list. I6 is an intentional cryptographic-hardness assumption and will not migrate to a theorem under any realistic schedule.
 

@@ -69,6 +69,14 @@ impl LevelPack {
     }
 
     /// Save the pack to a file
+    //
+    // PROOF-OBLIGATION I7 (ASSUMPTION): level-pack round-trip integrity.
+    // `load(save(p)) = Some(p)` on well-formed packs. Conditional on
+    // serde_json's derived `Serialize`/`Deserialize` for `Level` being
+    // mutually inverse — a stated correctness assumption about an external
+    // library, expected to be discharged by a Rust property test rather
+    // than an Idris2 theorem (the serde implementations are FFI-side).
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I7 (serdeRoundTripCorrect)
     pub fn save(&self, path: &Path) -> Result<(), LevelPackError> {
         let json = serde_json::to_string_pretty(self)
             .map_err(|e| LevelPackError::SerializationError(e.to_string()))?;
@@ -77,6 +85,17 @@ impl LevelPack {
     }
 
     /// Load a pack from a file
+    //
+    // PROOF-OBLIGATION I5 (DISCHARGED Idris2-side, OWED Rust-side caller):
+    // pack difficulty must be non-decreasing and in [1,5]. The decision
+    // procedure `decNonDecreasing` is total and machine-checked in
+    // Idris2; the obligation here is to invoke it on the loaded pack's
+    // difficulty sequence and reject packs that fail. Currently this
+    // function returns the deserialised pack unchecked.
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I5 (decNonDecreasing)
+    //
+    // PROOF-OBLIGATION I7 (ASSUMPTION): see `save` above — load is the
+    // other half of the round-trip pair.
     pub fn load(path: &Path) -> Result<Self, LevelPackError> {
         let content =
             fs::read_to_string(path).map_err(|e| LevelPackError::IoError(e.to_string()))?;
@@ -212,6 +231,14 @@ impl LevelPackManager {
     }
 
     /// Advance to the next level, returns true if successful
+    //
+    // PROOF-OBLIGATION I5 (DISCHARGED Idris2-side): difficulty progression.
+    // Within an ordered pack, difficulty must be non-decreasing. This
+    // function advances by index only — it does NOT re-check the
+    // difficulty invariant; that obligation belongs to the loader (see
+    // `LevelPack::load`). Listed here so a reviewer touching progression
+    // sees the contract.
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I5 (NonDecreasing)
     pub fn next_level(&mut self) -> bool {
         if let (Some(pack_idx), Some(level_idx)) =
             (self.current_pack_index, self.current_level_index)

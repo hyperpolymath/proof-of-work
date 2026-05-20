@@ -76,6 +76,13 @@ fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
 
 /// Verify that the puzzle solution is correct
 /// For the vertical slice: check if pieces form a valid proof
+//
+// PROOF-OBLIGATION I1 (OWED): verification soundness — a positive verdict
+// must imply the existence of a `VerifiedSolution` certificate (adjacency
+// witness + SMT entailment). This function returns `bool`; the certificate
+// is not constructed/returned. The refinement obligation is to surface the
+// certificate type the seam already defines.
+// See: src/abi/ProofOfWork/ABI/Invariants.idr I1
 #[cfg(feature = "z3-verify")]
 pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
     use z3::ast::Bool;
@@ -173,6 +180,14 @@ pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
 
 /// Mock verification when Z3 is not available
 /// Uses simple connectivity check
+//
+// PROOF-OBLIGATION I2 (OWED + KNOWN-VIOLATED): the mock must not accept
+// what the Z3 path would reject. Currently it accepts on adjacency
+// connectivity alone with no SMT step, so a no-Z3 build can grant false
+// wins. Highest-value defect on the I1-I7 register. Resolution requires a
+// design call: weaken to a connectivity-only "playable demo" return (e.g.
+// `MockVerdict::PlausibleNeedsZ3`), or remove the mock path entirely.
+// See: src/abi/ProofOfWork/ABI/Invariants.idr I2 (mockNoStrongerThanZ3)
 #[cfg(not(feature = "z3-verify"))]
 pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
     // Collect assumptions and goals

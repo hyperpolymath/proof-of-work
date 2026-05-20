@@ -87,6 +87,14 @@ impl NetworkClient {
         Ok(stats)
     }
 
+    // PROOF-OBLIGATION I6 (ASSUMPTION): submission-signature binding for
+    // leaderboard integrity rests on SHA-256 collision/2nd-preimage
+    // resistance — a stated cryptographic hardness assumption, not a
+    // theorem. Note this is a keyed *hash* (SHA-256 over serde_json(proof)
+    // ‖ api_key), not a MAC; length-extension or key-recovery concerns
+    // are out of seam scope but flagged in the invariant docstring.
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I6
+    //      (sha256CollisionResistant, signatureBindsPayload)
     fn sign_proof(proof: &ExportedProof, api_key: &str) -> String {
         use sha2::{Digest, Sha256};
 
