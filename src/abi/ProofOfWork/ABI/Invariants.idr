@@ -389,16 +389,54 @@ signatureBindsPayload = sha256CollisionResistant
 -- Source: src/levels/mod.rs `LevelPack::save`/`load` (serde_json).
 --
 -- Invariant: load . save = id on well-formed packs (no silent corruption
--- of community level packs across the disk boundary). OWED — serde is
--- assumed correct; stated so a future property/SPARK proof has a target.
+-- of community level packs across the disk boundary). Like I6, this is
+-- structurally an assumption about external-library correctness — here,
+-- serde_json's `Serialize`/`Deserialize` implementations for the `Level`
+-- record. It is NOT idris2-tractable in the same sense I3/I5 were
+-- (serialise/deserialise are abstract seam declarations; the Rust
+-- implementation lives behind FFI), and it is NOT a cryptographic
+-- hardness assumption like I6 either — it is a *correctness* assumption
+-- about a library that is reasonably expected to be tested but not
+-- proven. The seam exports this so any SPARK/Ada side, and any
+-- reviewer, sees that level-pack persistence integrity is conditional
+-- on it.
+--
+-- Discharge stance (this commit, parallel to I6's stated-assumption
+-- pattern):
+--   * The blanket postulate is RENAMED `serdeRoundTripCorrect` to make
+--     the assumption EXPLICIT and discoverable (was: bare `levelRoundTrip`
+--     marked "OWED").
+--   * `levelRoundTrip` is preserved as a derived alias so existing /
+--     downstream Idris2 callers do not break (mirrors I6's
+--     `signatureBindsPayload = sha256CollisionResistant`).
+--   * The Rust obligation is now: serde's derived `Serialize`/
+--     `Deserialize` for `Level` round-trip in property tests (this is
+--     the SPARK-side proof target). See PROOF-NEEDS.md I7.
 --------------------------------------------------------------------------------
 
-||| Abstract serialise/deserialise pair for a Level.
+||| Abstract serialise/deserialise pair for a Level. Modelled as the
+||| seam interface to the Rust serde_json `Serialize`/`Deserialize`
+||| implementations.
 public export
 0 serialise : Level -> String
 public export
 0 deserialise : String -> Maybe Level
 
-||| I7: round-trip identity. OWED.
+||| Round-trip correctness, stated as an ASSUMPTION (postulate). The
+||| seam exports this so any SPARK/Ada side, and any reviewer, sees that
+||| level-pack persistence integrity is conditional on it. It is
+||| intentionally NOT provable in Idris2 — `serialise`/`deserialise` are
+||| abstract seam declarations whose implementations live in Rust
+||| (serde_json). The Rust obligation is to property-test the round-trip
+||| for every `Level` constructed by the loader.
+public export
+0 serdeRoundTripCorrect :
+  (l : Level) -> deserialise (serialise l) = Just l
+
+||| I7 (conditional integrity). Under `serdeRoundTripCorrect`, save and
+||| load are inverse for any `Level` — i.e. no silent corruption across
+||| the disk boundary. Derived alias of the assumption above; kept under
+||| its original name so downstream Idris2 callers do not break.
 public export
 0 levelRoundTrip : (l : Level) -> deserialise (serialise l) = Just l
+levelRoundTrip = serdeRoundTripCorrect
