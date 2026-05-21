@@ -33,7 +33,7 @@ establish.
 | ID | Property | Status |
 |----|----------|--------|
 | I1 | Verification soundness — a positive verdict implies a real `VerifiedSolution` certificate (adjacency + SMT entailment) | **OWED** — Rust does not return the witness; certificate type defined, refinement obligation open |
-| I2 | Mock verifier no weaker than the Z3 path (no false wins in no-Z3 builds) | **OWED + KNOWN-VIOLATED** — mock accepts on connectivity alone; highest-value defect |
+| I2 | Mock verifier no weaker than the Z3 path (no false wins in no-Z3 builds) | **DISCHARGED** (2026-05-21) — `verify_level_solution` now returns a tri-valued `VerificationVerdict { Verified \| Rejected \| CannotVerify }`; the no-Z3 mock returns `CannotVerify` unconditionally, so "mock accepts" is structurally impossible. `mockNoStrongerThanZ3` discharged via uninhabited `MockAccepts` premise in `Invariants.idr`. Regression test: `verification::tests::test_mock_never_accepts` |
 | I3 | `placePiece` preserves board well-formedness (in-bounds + no overlap) | **DISCHARGED** — `placePreservesWF` machine-checked in `Invariants.idr` (PR #60, 2026-05-19); the `all`/`any` cons-distribution lemmas needed for the foldl-based Prelude predicates landed inline as part of that PR; `idris2 --check` green |
 | I4 | Every shipped/generated level is solvable | **OWED** — no solver-side existence proof in Rust |
 | I5 | Pack difficulty sequence is non-decreasing & in [1,5] | **DISCHARGED** — `decNonDecreasing` (total decision proc) + `builtinPackMonotone : NonDecreasing [1,2,3,4,5]` machine-checked; blanket form correctly retained only as the erased Rust-side obligation |
@@ -49,24 +49,23 @@ locates the obligation site from the Rust side; the seam docstring in
 
 | Component | What | Why | Maps to | Where |
 |-----------|------|-----|---------|-------|
-| Mock verifier (I2) | Mock must not accept what Z3 rejects | No-Z3 builds otherwise grant false wins | I2 (defect) | **Rust code defect** — `src/verification/mod.rs::verify_level_solution` (`#[cfg(not(feature="z3-verify"))]` body). Needs design call (mock weakening to a non-accepting verdict, or removal). Not Idris2-tractable in isolation. |
-| Cryptographic verification (I1) | Positive verdict returns/justifies a certificate | The game's core mechanic: "prove your work, literally" | I1 | **Rust API change** — `src/verification/mod.rs::verify_level_solution` (`#[cfg(feature="z3-verify")]` body) and `src/verification/z3_integration.rs::verify_formula` both return `bool`; must return the `VerifiedSolution` certificate the seam already types. Idris2 statement waits on that. |
+| Cryptographic verification (I1) | Positive verdict returns/justifies a certificate | The game's core mechanic: "prove your work, literally" | I1 | **Rust API change** — `src/verification/mod.rs::verify_level_solution` returns `VerificationVerdict` (since 2026-05-21 I2 fix); `Verified` should carry the `VerifiedSolution` certificate the seam already types instead of being a bare variant. `src/verification/z3_integration.rs::verify_formula` similarly returns `bool`. Idris2 statement waits on the certificate plumbing. |
 | Puzzle generation (I4) | Generated puzzles always solvable | Unsolvable puzzles break the game | I4 | **Rust solver-side** — readiness check is `src/game/validation.rs::is_ready_for_verification` (necessary but not sufficient). A generator that emits an existence witness alongside the level would inhabit `packLevelsSolvable`; until then the Idris2 statement is intentionally unprovable. |
 | Pack round-trip (I7) | `load . save = id` on well-formed packs | Community-pack corruption across disk | I7 (now ASSUMPTION) | `src/levels/mod.rs::LevelPack::save` / `::load`. Discharge route: property-test the Rust serde against `serdeRoundTripCorrect`, or write a SPARK proof of the encoder/decoder pair. Not blocking. |
 | Level progression (I5) | Loader must call `decNonDecreasing` per pack | Non-monotonic difficulty breaks progression | I5 (validator done) | **Rust caller-side** — `src/levels/mod.rs::LevelPack::load` must invoke the discharged decision procedure on the loaded difficulty sequence; `LevelPackManager::next_level` is advance-by-index only and intentionally does not re-check. |
 
-I3 is **DISCHARGED** (see register above); not in the remaining-proof list. I6 is an intentional cryptographic-hardness assumption and will not migrate to a theorem under any realistic schedule.
+I2 and I3 are **DISCHARGED** (see register above); not in the remaining-proof list. I6 is an intentional cryptographic-hardness assumption and will not migrate to a theorem under any realistic schedule.
 
 ## Recommended Prover
 
-**Idris2** — The game's THEME is cryptographic proof-of-work. Having formal proofs that the verification is sound would be thematically perfect and practically valuable. The Idris2 ABI seam is in place; remaining work is mostly Rust-side (I1, I2, I4 all need API or implementation changes before the corresponding Idris2 statements become inhabitable).
+**Idris2** — The game's THEME is cryptographic proof-of-work. Having formal proofs that the verification is sound would be thematically perfect and practically valuable. The Idris2 ABI seam is in place; remaining work is mostly Rust-side (I1 and I4 still need API or implementation changes before the corresponding Idris2 statements become inhabitable).
 
 ## Priority
 
 **LOW** (severity) but the seam is now real: structural compliance done,
-I3 + I5 discharged, I6 and I7 stated as explicit assumptions (cryptographic
-hardness, serde correctness), and I1/I2/I4 tracked as erased OWED
-obligations under CI (`abi-verify.yml`) so they cannot silently rot into
-`believe_me`. Highest-value remaining target is **I2** (mock-vs-Z3
-soundness — a known defect, not just an absence). The "proof-of-work game
-with no proofs" irony is no longer true.
+I2 + I3 + I5 discharged, I6 and I7 stated as explicit assumptions
+(cryptographic hardness, serde correctness), and I1/I4 tracked as erased
+OWED obligations under CI (`abi-verify.yml`) so they cannot silently rot
+into `believe_me`. Highest-value remaining target is **I1** (the Rust
+verifier returns a `Verified` variant but doesn't yet carry the
+`VerifiedSolution` certificate the seam types).
