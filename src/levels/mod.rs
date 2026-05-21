@@ -84,23 +84,60 @@ impl LevelPack {
         Ok(())
     }
 
+    /// Check that the pack-level difficulty is in the documented 1..=5
+    /// range (the `DifficultyInRange` half of I5).
+    //
+    // PROOF-OBLIGATION I5 — half-DISCHARGED Rust-side.
+    //
+    // Mirrors Idris2 `DifficultyInRange : Difficulty -> Type` defined as
+    // `(So (d >= 1), So (d <= 5))` in
+    // src/abi/ProofOfWork/ABI/Invariants.idr. The `u8` representation
+    // permits values 0 and 6..=255 that the Idris2 statement rejects;
+    // this check closes that gap at the load boundary.
+    pub fn check_difficulty_in_range(&self) -> Result<(), LevelPackError> {
+        if (1..=5).contains(&self.difficulty) {
+            Ok(())
+        } else {
+            Err(LevelPackError::DifficultyOutOfRange {
+                found: self.difficulty,
+            })
+        }
+    }
+
     /// Load a pack from a file
     //
-    // PROOF-OBLIGATION I5 (DISCHARGED Idris2-side, OWED Rust-side caller):
-    // pack difficulty must be non-decreasing and in [1,5]. The decision
-    // procedure `decNonDecreasing` is total and machine-checked in
-    // Idris2; the obligation here is to invoke it on the loaded pack's
-    // difficulty sequence and reject packs that fail. Currently this
-    // function returns the deserialised pack unchecked.
-    // See: src/abi/ProofOfWork/ABI/Invariants.idr I5 (decNonDecreasing)
+    // PROOF-OBLIGATION I5 — half-DISCHARGED Rust-side caller.
+    //
+    // The Idris2 seam states two properties for shipped packs:
+    //   (a) DifficultyInRange — each pack's difficulty is in [1,5].
+    //   (b) NonDecreasing     — the *sequence* of per-level difficulties
+    //                           inside a pack is monotone.
+    //
+    // (a) is checked here via `check_difficulty_in_range` — the loader
+    // refuses to return a pack whose `difficulty` field is outside the
+    // documented `1..=5` range that the Idris2 statement assumes.
+    //
+    // (b) cannot be enforced under the current schema: `struct Level`
+    // (src/game/mod.rs) has no `difficulty` field, so the loaded pack
+    // does not carry the `List Difficulty` sequence `decNonDecreasing`
+    // expects. Discharging (b) requires either adding a per-level
+    // `difficulty: u8` to `Level` (data migration), or reinterpreting
+    // I5 over the cross-pack manager sequence (sort + check in
+    // `LevelPackManager::load_all`). Tracked as a residual; see
+    // PROOF-NEEDS.md I5.
+    //
+    // See: src/abi/ProofOfWork/ABI/Invariants.idr I5
+    //      (DifficultyInRange, NonDecreasing, decNonDecreasing)
     //
     // PROOF-OBLIGATION I7 (ASSUMPTION): see `save` above — load is the
     // other half of the round-trip pair.
     pub fn load(path: &Path) -> Result<Self, LevelPackError> {
         let content =
             fs::read_to_string(path).map_err(|e| LevelPackError::IoError(e.to_string()))?;
-        serde_json::from_str(&content)
-            .map_err(|e| LevelPackError::DeserializationError(e.to_string()))
+        let pack: Self = serde_json::from_str(&content)
+            .map_err(|e| LevelPackError::DeserializationError(e.to_string()))?;
+        pack.check_difficulty_in_range()?;
+        Ok(pack)
     }
 }
 
@@ -112,6 +149,9 @@ pub enum LevelPackError {
     SerializationError(String),
     DeserializationError(String),
     NotFound(String),
+    /// Pack-level difficulty outside the documented 1..=5 range
+    /// (I5 `DifficultyInRange`; see src/abi/ProofOfWork/ABI/Invariants.idr).
+    DifficultyOutOfRange { found: u8 },
 }
 
 impl std::fmt::Display for LevelPackError {
@@ -121,6 +161,11 @@ impl std::fmt::Display for LevelPackError {
             Self::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
             Self::DeserializationError(msg) => write!(f, "Deserialization error: {}", msg),
             Self::NotFound(msg) => write!(f, "Not found: {}", msg),
+            Self::DifficultyOutOfRange { found } => write!(
+                f,
+                "pack difficulty {} outside documented 1..=5 range (I5 DifficultyInRange)",
+                found
+            ),
         }
     }
 }
@@ -476,5 +521,113 @@ mod tests {
         let pack = create_builtin_tutorial_pack();
         assert_eq!(pack.id, "tutorial");
         assert!(!pack.levels.is_empty());
+    }
+
+    // ── I5 DifficultyInRange — Rust-side caller discharge ───────────────
+    //
+    // Mirrors the Idris2 `DifficultyInRange : Difficulty -> Type` defined
+    // as `(So (d >= 1), So (d <= 5))` in
+    // src/abi/ProofOfWork/ABI/Invariants.idr. The Rust `u8`
+    // representation permits values 0 and 6..=255 that the Idris2
+    // statement rejects; `LevelPack::check_difficulty_in_range` is the
+    // discharged caller-side validator.
+
+    fn pack_with_difficulty(d: u8) -> LevelPack {
+        LevelPack {
+            difficulty: d,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn i5_in_range_accepts_minimum() {
+        assert!(pack_with_difficulty(1).check_difficulty_in_range().is_ok());
+    }
+
+    #[test]
+    fn i5_in_range_accepts_maximum() {
+        assert!(pack_with_difficulty(5).check_difficulty_in_range().is_ok());
+    }
+
+    #[test]
+    fn i5_in_range_accepts_interior() {
+        for d in 2..=4u8 {
+            assert!(
+                pack_with_difficulty(d).check_difficulty_in_range().is_ok(),
+                "difficulty {} should be accepted",
+                d
+            );
+        }
+    }
+
+    #[test]
+    fn i5_in_range_rejects_zero() {
+        match pack_with_difficulty(0).check_difficulty_in_range() {
+            Err(LevelPackError::DifficultyOutOfRange { found: 0 }) => {}
+            other => panic!("expected DifficultyOutOfRange {{ found: 0 }}, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn i5_in_range_rejects_above_maximum() {
+        for d in [6u8, 7, 99, 255] {
+            match pack_with_difficulty(d).check_difficulty_in_range() {
+                Err(LevelPackError::DifficultyOutOfRange { found }) => {
+                    assert_eq!(found, d, "echoed difficulty value mismatch");
+                }
+                other => panic!("expected DifficultyOutOfRange for {}, got {:?}", d, other),
+            }
+        }
+    }
+
+    #[test]
+    fn i5_builtin_tutorial_pack_passes() {
+        let pack = create_builtin_tutorial_pack();
+        assert!(
+            pack.check_difficulty_in_range().is_ok(),
+            "builtin tutorial pack must pass I5 DifficultyInRange (difficulty was {})",
+            pack.difficulty
+        );
+    }
+
+    /// Write `pack` to a uniquely-named file under `env::temp_dir()` and
+    /// return the path. The caller is responsible for removing it. Used
+    /// by the I5 load-path tests to avoid a `tempfile` dev-dependency
+    /// for two tests.
+    fn write_pack_to_temp(pack: &LevelPack, tag: &str) -> PathBuf {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("pow-i5-{}-{}.json", tag, nanos));
+        let json = serde_json::to_string(pack).expect("serialize pack");
+        fs::write(&path, json).expect("write temp pack");
+        path
+    }
+
+    #[test]
+    fn i5_load_rejects_out_of_range_pack() {
+        let bad = pack_with_difficulty(7);
+        let path = write_pack_to_temp(&bad, "reject");
+        let result = LevelPack::load(&path);
+        let _ = fs::remove_file(&path);
+        match result {
+            Err(LevelPackError::DifficultyOutOfRange { found: 7 }) => {}
+            other => panic!(
+                "LevelPack::load should reject difficulty=7 with DifficultyOutOfRange, got {:?}",
+                other
+            ),
+        }
+    }
+
+    #[test]
+    fn i5_load_accepts_in_range_pack() {
+        let good = pack_with_difficulty(3);
+        let path = write_pack_to_temp(&good, "accept");
+        let result = LevelPack::load(&path);
+        let _ = fs::remove_file(&path);
+        let loaded = result.expect("load should succeed for difficulty=3");
+        assert_eq!(loaded.difficulty, 3);
     }
 }
