@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 
+use z3::Solver;
 use z3::ast::Bool;
-use z3::{Config, Context, Solver};
 
 use crate::game::Level;
 
@@ -12,18 +12,16 @@ use crate::game::Level;
 // the SMT entailment actually holds (here directly via Z3 UNSAT-on-¬goal).
 // Returns `bool`; the entailment witness is not surfaced.
 // See: src/abi/ProofOfWork/ABI/Invariants.idr I1
-pub fn verify_formula(level: &Level) -> bool {
-    let cfg = Config::new();
-    let ctx = Context::new(&cfg);
-    let solver = Solver::new(&ctx);
+pub fn verify_formula(_level: &Level) -> bool {
+    let solver = Solver::new();
 
     // Parse level's theorem and current board state
     // Convert to Z3 AST
 
     // For now, simple example:
-    let p = Bool::new_const(&ctx, "P");
-    let q = Bool::new_const(&ctx, "Q");
-    let r = Bool::new_const(&ctx, "R");
+    let p = Bool::new_const("P");
+    let q = Bool::new_const("Q");
+    let r = Bool::new_const("R");
 
     // Add assumptions
     solver.assert(&p);
@@ -31,7 +29,7 @@ pub fn verify_formula(level: &Level) -> bool {
 
     // Check if goal follows
     // (We want to prove R, so we check if ¬R is UNSAT)
-    let goal = Bool::implies(&p.and(&[&q]), &r);
+    let goal = Bool::and(&[&p, &q]).implies(&r);
     solver.assert(&goal.not());
 
     match solver.check() {
@@ -51,10 +49,8 @@ pub fn verify_formula(level: &Level) -> bool {
 }
 
 /// Validate a proof formula locally
-pub fn validate_proof_locally(formula: &str) -> Result<bool, String> {
-    let cfg = Config::new();
-    let ctx = Context::new(&cfg);
-    let solver = Solver::new(&ctx);
+pub fn validate_proof_locally(_formula: &str) -> Result<bool, String> {
+    let solver = Solver::new();
 
     // Parse SMT-LIB2 formula
     // For production, use proper parser
