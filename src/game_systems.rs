@@ -317,13 +317,23 @@ pub fn check_solution(
         }
 
         // Verify the solution
-        if crate::verification::verify_level_solution(&current_level.0, &pieces) {
-            info!("PROOF VERIFIED - Solution is correct!");
-            stats.complete_level();
-            next_state.set(GameState::LevelComplete);
-        } else {
-            warn!("Solution incomplete - keep trying!");
-            warn!("Hint: Place an AND gate adjacent to P and Q, and adjacent to R");
+        use crate::verification::VerificationVerdict;
+        match crate::verification::verify_level_solution(&current_level.0, &pieces) {
+            VerificationVerdict::Verified => {
+                info!("PROOF VERIFIED - Solution is correct!");
+                stats.complete_level();
+                next_state.set(GameState::LevelComplete);
+            }
+            VerificationVerdict::Rejected => {
+                warn!("Solution incomplete - keep trying!");
+                warn!("Hint: Place an AND gate adjacent to P and Q, and adjacent to R");
+            }
+            VerificationVerdict::CannotVerify => {
+                warn!(
+                    "Cannot verify in this build: rebuild with \
+                     `cargo run --features z3-verify` to verify solutions."
+                );
+            }
         }
     }
 }

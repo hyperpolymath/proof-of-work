@@ -89,31 +89,47 @@ record VerifiedSolution (board : List LogicPiece) where
                              ++ ") " ++ goalForm ++ ")"] goalForm
 
 --------------------------------------------------------------------------------
--- I2. Verifier determinism / mock-vs-Z3 agreement
+-- I2. Verifier determinism / mock-vs-Z3 agreement — DISCHARGED 2026-05-21
 --
 -- Source: src/verification/mod.rs — there are TWO `verify_level_solution`
 -- bodies: `#[cfg(feature="z3-verify")]` (real Z3) and
--- `#[cfg(not(...))]` (mock connectivity-only).
+-- `#[cfg(not(...))]` (mock).
 --
 -- Invariant: the mock MUST NOT accept a configuration the Z3 path would
--- reject (else a no-Z3 build grants false wins). Currently the mock
--- accepts on connectivity ALONE, with no SMT check — this invariant is
--- KNOWN-VIOLATED by construction and is the highest-value defect.
+-- reject (else a no-Z3 build grants false wins). Previously the mock
+-- accepted on connectivity ALONE, with no SMT check — KNOWN-VIOLATED.
+--
+-- RESOLUTION (2026-05-21, PR proof-debt/pow-i2-tri-valued-verdict):
+-- `verify_level_solution`'s return type changed from `bool` to a tri-
+-- valued `VerificationVerdict { Verified | Rejected | CannotVerify }`.
+-- The no-Z3 mock now unconditionally returns `CannotVerify` — it never
+-- constructs `Verified`. Therefore "mock accepts" is structurally
+-- impossible in no-Z3 builds, and `mockNoStrongerThanZ3` holds vacuously
+-- (false premise → any conclusion).
 --------------------------------------------------------------------------------
 
 ||| Predicate "connectivity holds for some AND gate" — exactly the mock's
-||| acceptance condition (connectivity to P, Q, goal).
+||| old acceptance condition (connectivity to P, Q, goal). Retained as
+||| historical record of what the connectivity-only mock checked.
 public export
 data ConnOK : List LogicPiece -> Type where
   MkConnOK : (gate : Pos) -> ConnOK board
 
-||| I2: soundness of the mock relative to Z3. The mock accepting must
-||| imply Z3 would accept. This is stated as the proposition the seam
-||| OWES; it is NOT proven (the mock has no SMT step). Postulated so the
-||| obligation is explicit and discoverable.
+||| The mock never accepts. The Rust mock returns `CannotVerify` on every
+||| input; "mock accepted" is uninhabited. Treated as the seam's witness
+||| that the connectivity-only acceptance path no longer exists.
 public export
-0 mockNoStrongerThanZ3 :
-  (board : List LogicPiece) -> ConnOK board -> VerifiedSolution board
+data MockAccepts : List LogicPiece -> Type where
+  -- intentionally no constructors
+
+||| I2: soundness of the mock relative to Z3. The mock accepting implies
+||| Z3 would accept. With `MockAccepts` now uninhabited (mock returns
+||| `CannotVerify` only), this is discharged by `void` over the empty
+||| premise — provable for any `board`.
+public export
+mockNoStrongerThanZ3 :
+  (board : List LogicPiece) -> MockAccepts board -> VerifiedSolution board
+mockNoStrongerThanZ3 _ impossible_acceptance impossible
 
 --------------------------------------------------------------------------------
 -- I3. Board well-formedness preservation under placement
