@@ -85,12 +85,10 @@ fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
 // See: src/abi/ProofOfWork/ABI/Invariants.idr I1
 #[cfg(feature = "z3-verify")]
 pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
+    use z3::Solver;
     use z3::ast::Bool;
-    use z3::{Config, Context, Solver};
 
-    let cfg = Config::new();
-    let ctx = Context::new(&cfg);
-    let solver = Solver::new(&ctx);
+    let solver = Solver::new();
 
     // Collect assumptions and goals
     let mut assumptions: Vec<(&str, (u32, u32))> = Vec::new();
@@ -143,9 +141,9 @@ pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
         // If AND gate connects P, Q, and R - verify with Z3
         if p_connected && q_connected && goal_connected {
             // Create Z3 proof
-            let p = Bool::new_const(&ctx, "P");
-            let q = Bool::new_const(&ctx, "Q");
-            let r = Bool::new_const(&ctx, "R");
+            let p = Bool::new_const("P");
+            let q = Bool::new_const("Q");
+            let r = Bool::new_const("R");
 
             // Assert P and Q are true (assumptions)
             solver.assert(&p);
@@ -153,8 +151,8 @@ pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> bool {
 
             // We want to prove R, given (P AND Q) => R
             // Assert the implication as an axiom
-            let p_and_q = Bool::and(&ctx, &[&p, &q]);
-            let implication = Bool::implies(&p_and_q, &r);
+            let p_and_q = Bool::and(&[&p, &q]);
+            let implication = p_and_q.implies(&r);
             solver.assert(&implication);
 
             // Try to prove R is true
