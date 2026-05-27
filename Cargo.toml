@@ -2,7 +2,7 @@
 name = "proof-of-work"
 version = "0.1.0"
 edition = "2021"
-license = "PMPL-1.0-or-later"
+license = "MPL-2.0"
 description = "Proof-of-Work puzzle game library with Bevy engine and optional Z3 verification"
 repository = "https://github.com/hyperpolymath/proof-of-work"
 homepage = "https://github.com/hyperpolymath/proof-of-work"
