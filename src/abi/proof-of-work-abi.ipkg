@@ -1,4 +1,4 @@
--- SPDX-License-Identifier: PMPL-1.0-or-later
+-- SPDX-License-Identifier: MPL-2.0
 -- Build/typecheck package for the proof-of-work Rust↔SPARK ABI seam.
 --
 -- The seam modules are namespaced `ProofOfWork.ABI.*`; Idris2 requires

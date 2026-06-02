@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # ai.txt - AI agent instructions for proof-of-work
 # See https://site.spawning.ai/ai-txt
 

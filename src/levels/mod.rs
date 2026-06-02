@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 //! Level pack management - loading, saving, and organizing levels.
 
 pub mod ui;

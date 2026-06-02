@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 //! Benchmarks for proof-of-work core game logic.
 //!
 //! Exercises real operations: board manipulation, piece placement and removal,
