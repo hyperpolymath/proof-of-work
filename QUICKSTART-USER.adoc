@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 // Template: QUICKSTART-USER.adoc — 5-minute path to working software
 // Replace proof-of-work, Proof Of Work — See README.adoc for details., just run, Proof Of Work started successfully. with actuals
 = proof-of-work — Quick Start for Users

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 = proof-of-work — CRG Audit (2026-04-18)
@@ -93,7 +93,7 @@ Publication requires B+. Long alpha is discipline, not shame.
 
 | SPDX headers on source
 | PRESENT on 20/20 Rust source and test files sampled
-| Every `src/**.rs` and `tests/*.rs` carries `// SPDX-License-Identifier: PMPL-1.0-or-later`.
+| Every `src/**.rs` and `tests/*.rs` carries `// SPDX-License-Identifier: MPL-2.0`.
 
 | `Containerfile` (not `Dockerfile`)
 | PRESENT (`Containerfile` at root, `.clusterfuzzlite/Containerfile` for fuzzing). Zero `Dockerfile` at any depth.
@@ -265,7 +265,7 @@ blocks. Counting property-block expansions charitably, the real test
 budget is ~80-95 depending on how you count proptest cases — not 126+.
 
 CI coverage: `.github/workflows/rust-ci.yml` parses cleanly (line 1
-`# SPDX-License-Identifier: PMPL-1.0-or-later`, line 2 `name: Rust CI`,
+`# SPDX-License-Identifier: MPL-2.0`, line 2 `name: Rust CI`,
 line 3 `on: [push, pull_request]`). Last green run date not cited in
 STATE. `.hypatia/activity.jsonl` is a 1-line file (last-visit only,
 not a run log). No CI-badge link in README.

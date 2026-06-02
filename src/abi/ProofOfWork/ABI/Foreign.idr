@@ -1,4 +1,4 @@
-||| SPDX-License-Identifier: PMPL-1.0-or-later
+||| SPDX-License-Identifier: MPL-2.0
 ||| Proof-of-Work ABI: FFI Boundary Obligations
 |||
 ||| The Zig-FFI side of the hyperpolymath ABI/FFI standard. The Rust crate

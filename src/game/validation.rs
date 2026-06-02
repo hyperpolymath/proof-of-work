@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 //! Validation for game board state and piece placement.
 //!
 //! Provides rules for validating piece placement, wire connections,

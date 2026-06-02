@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 //! Game systems that run within the Bevy game loop.
 //! These are separated from the core game module because they depend on GameState.
 

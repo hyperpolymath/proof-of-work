@@ -1,4 +1,4 @@
-||| SPDX-License-Identifier: PMPL-1.0-or-later
+||| SPDX-License-Identifier: MPL-2.0
 ||| Proof-of-Work ABI: Boundary Types
 |||
 ||| Idris2 statements of the data types that the Rust crate `proof_of_work`
