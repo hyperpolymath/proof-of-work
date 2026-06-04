@@ -10,6 +10,7 @@ permissions:
 jobs:
   Batch:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Build Fuzzers
         id: build

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //! Benchmarks for proof-of-work core game logic.
 //!
 //! Exercises real operations: board manipulation, piece placement and removal,

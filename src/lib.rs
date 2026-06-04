@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //! Proof of Work - A logic puzzle game with cryptographic verification
 //!
 //! This library exposes the core game logic for testing and embedding.

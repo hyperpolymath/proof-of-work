@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
-
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 use crate::game::{BoardState, Level, LogicPiece};
 
 #[cfg(feature = "z3-verify")]

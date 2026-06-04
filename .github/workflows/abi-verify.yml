@@ -37,6 +37,7 @@ jobs:
   idris2-abi:
     name: Idris2 ABI seam (proof-of-work-abi.ipkg)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     container:
       image: snazzybucket/idris2:latest  # estate-standard Idris2 image
     steps:
