@@ -3,10 +3,8 @@ name: ClusterFuzzLite PR fuzzing
 on:
   pull_request:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   PR:
     runs-on: ubuntu-latest

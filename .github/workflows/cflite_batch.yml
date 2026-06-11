@@ -2,11 +2,9 @@
 name: ClusterFuzzLite batch fuzzing
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
-
+    - cron: '0 0 * * 0' # Weekly on Sunday
 permissions:
   contents: read
-
 jobs:
   Batch:
     runs-on: ubuntu-latest

@@ -15,7 +15,6 @@
 # the estate already proves against). HARD GATE.
 
 name: ABI Seam Verification
-
 on:
   pull_request:
     paths:
@@ -25,25 +24,21 @@ on:
     branches: [main]
     paths:
       - 'src/abi/**'
-
 permissions:
   contents: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   idris2-abi:
     name: Idris2 ABI seam (proof-of-work-abi.ipkg)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
-      image: snazzybucket/idris2:latest  # estate-standard Idris2 image
+      image: snazzybucket/idris2:latest # estate-standard Idris2 image
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
-
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
       - name: Build (typecheck) the ABI seam
         working-directory: src/abi
         run: |
