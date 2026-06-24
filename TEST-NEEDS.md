@@ -237,7 +237,7 @@ cargo bench --no-run --features headless
 
 ## Compliance Notes
 
-- **SPDX Headers:** All test files include `SPDX-License-Identifier: MPL-2.0`
+- **SPDX Headers:** All test files include `SPDX-License-Identifier: CC-BY-SA-4.0`
 - **Author Attribution:** Tests authored by Jonathan D.A. Jewell <6759885+hyperpolymath@users.noreply.github.com>
 - **No `unwrap()`:** All error paths use `.expect("context")` or pattern matching
 - **Panic Safety:** All tests verify operations do not panic on invalid input
