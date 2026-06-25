@@ -105,6 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -147,6 +149,13 @@ jobs:
             ### Note
             Pre-built binaries do not include Z3 verification support.
             Build from source with `--features z3-verify` for full features.
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            artifacts/**/*
+            SHA256SUMS.txt
 
   publish-crates:
     name: Publish to crates.io
