@@ -36,8 +36,18 @@ pub fn editor_ui_system(
         return;
     };
 
+    // egui 0.35 panels render into a `Ui`, not a `Context`. Build a root viewport
+    // `Ui` covering the whole window and show all panels into it.
+    let mut viewport_ui = egui::Ui::new(
+        ctx.clone(),
+        "editor_viewport".into(),
+        egui::UiBuilder::new()
+            .layer_id(egui::LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
+
     // Top toolbar
-    egui::TopBottomPanel::top("editor_toolbar").show(ctx, |ui| {
+    egui::Panel::top("editor_toolbar").show(&mut viewport_ui, |ui| {
         ui.horizontal(|ui| {
             ui.heading("Level Editor");
             ui.separator();
@@ -80,9 +90,9 @@ pub fn editor_ui_system(
     });
 
     // Left panel - piece palette and tools
-    egui::SidePanel::left("editor_palette")
-        .min_width(200.0)
-        .show(ctx, |ui| {
+    egui::Panel::left("editor_palette")
+        .min_size(200.0)
+        .show(&mut viewport_ui, |ui| {
             ui.heading("Tools");
             ui.separator();
 
@@ -165,9 +175,9 @@ pub fn editor_ui_system(
         });
 
     // Right panel - level properties
-    egui::SidePanel::right("editor_properties")
-        .min_width(250.0)
-        .show(ctx, |ui| {
+    egui::Panel::right("editor_properties")
+        .min_size(250.0)
+        .show(&mut viewport_ui, |ui| {
             ui.heading("Level Properties");
             ui.separator();
 
@@ -314,7 +324,7 @@ pub fn editor_ui_system(
         });
 
     // Bottom panel - instructions
-    egui::TopBottomPanel::bottom("editor_help").show(ctx, |ui| {
+    egui::Panel::bottom("editor_help").show(&mut viewport_ui, |ui| {
         ui.horizontal_centered(|ui| {
             ui.label("Left-click: Place/Select");
             ui.separator();

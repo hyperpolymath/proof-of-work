@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 use std::path::PathBuf;
 
 mod editor;
@@ -100,14 +100,20 @@ fn main() {
     app
         // Startup systems (run once at launch)
         .add_systems(Startup, (setup_camera, levels::ui::init_level_packs))
-        // Systems that run every frame in MainMenu state
+        // Systems that run every frame in MainMenu state.
+        // egui-drawing systems must run in the EguiPrimaryContextPass schedule
+        // (bevy_egui 0.41); input/logic stays in Update.
+        .add_systems(
+            EguiPrimaryContextPass,
+            ui::main_menu_system.run_if(in_state(GameState::MainMenu)),
+        )
         .add_systems(
             Update,
-            (ui::main_menu_system, ui::handle_menu_input).run_if(in_state(GameState::MainMenu)),
+            ui::handle_menu_input.run_if(in_state(GameState::MainMenu)),
         )
         // Level select state
         .add_systems(
-            Update,
+            EguiPrimaryContextPass,
             levels::ui::level_select_ui_system.run_if(in_state(GameState::LevelSelect)),
         )
         .add_systems(
@@ -117,9 +123,12 @@ fn main() {
         // Editor state
         .add_systems(OnEnter(GameState::Editor), editor::ui::spawn_editor_grid)
         .add_systems(
+            EguiPrimaryContextPass,
+            editor::ui::editor_ui_system.run_if(in_state(GameState::Editor)),
+        )
+        .add_systems(
             Update,
             (
-                editor::ui::editor_ui_system,
                 editor::ui::editor_input_system,
                 editor::ui::update_editor_pieces,
                 editor::ui::handle_test_level,
@@ -142,9 +151,12 @@ fn main() {
                 game_systems::update_piece_positions,
                 game_systems::check_connections,
                 game_systems::check_solution,
-                ui::update_hud,
             )
                 .run_if(in_state(GameState::Playing)),
+        )
+        .add_systems(
+            EguiPrimaryContextPass,
+            ui::update_hud.run_if(in_state(GameState::Playing)),
         );
 
     // Steam callbacks (if available)
@@ -156,9 +168,12 @@ fn main() {
         .add_systems(OnEnter(GameState::LevelComplete), on_level_complete)
         // Systems that run in LevelComplete state
         .add_systems(
+            EguiPrimaryContextPass,
+            ui::show_completion_screen.run_if(in_state(GameState::LevelComplete)),
+        )
+        .add_systems(
             Update,
-            (ui::show_completion_screen, ui::handle_completion_input)
-                .run_if(in_state(GameState::LevelComplete)),
+            ui::handle_completion_input.run_if(in_state(GameState::LevelComplete)),
         )
         // Systems when exiting Playing state
         .add_systems(OnExit(GameState::Playing), game_systems::cleanup_level)
