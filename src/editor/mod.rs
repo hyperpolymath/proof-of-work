@@ -252,7 +252,7 @@ impl EditorPieceType {
     }
 
     /// Create a LogicPiece from this type at the given position
-    pub fn to_logic_piece(&self, pos: (u32, u32), formula: &str, variable: &str) -> LogicPiece {
+    pub fn to_logic_piece(self, pos: (u32, u32), formula: &str, variable: &str) -> LogicPiece {
         match self {
             Self::Assumption => LogicPiece::Assumption {
                 formula: formula.to_string(),

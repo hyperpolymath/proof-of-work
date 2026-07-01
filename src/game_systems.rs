@@ -120,6 +120,7 @@ pub fn spawn_pieces(
 }
 
 // Input handling system
+#[allow(clippy::too_many_arguments)]
 pub fn handle_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     mouse: Res<ButtonInput<MouseButton>>,

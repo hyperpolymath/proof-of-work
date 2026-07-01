@@ -233,10 +233,9 @@ pub fn level_select_ui_system(
                         egui::Button::new(egui::RichText::new("Play Selected").size(18.0)),
                     )
                     .clicked()
+                    && has_level_selected
                 {
-                    if has_level_selected {
-                        play_level = true;
-                    }
+                    play_level = true;
                 }
             } else {
                 columns[1].label("Select a pack to see levels");

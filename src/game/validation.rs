@@ -133,7 +133,7 @@ pub fn validate_piece_placement(
             if !formula
                 .chars()
                 .next()
-                .map_or(false, |c| c.is_alphanumeric() || c == '(')
+                .is_some_and(|c| c.is_alphanumeric() || c == '(')
             {
                 return Err(ValidationError::InvalidFormula {
                     formula: formula.clone(),

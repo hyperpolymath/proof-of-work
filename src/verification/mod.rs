@@ -46,11 +46,9 @@ pub fn board_to_smt(board: &BoardState) -> String {
                     formulas.push(formula.clone());
                 }
             }
-            LogicPiece::Goal { formula, .. } => {
-                if !formulas.contains(formula) {
-                    smt.push_str(&format!("(declare-const {} Bool)\n", formula));
-                    formulas.push(formula.clone());
-                }
+            LogicPiece::Goal { formula, .. } if !formulas.contains(formula) => {
+                smt.push_str(&format!("(declare-const {} Bool)\n", formula));
+                formulas.push(formula.clone());
             }
             _ => {}
         }
@@ -68,6 +66,9 @@ pub fn board_to_smt(board: &BoardState) -> String {
 }
 
 /// Check if two positions are adjacent (within 2 grid units)
+// Only referenced by the z3-verify solver path (and tests); allow it to sit
+// unused in the headless/no-z3 build without a dead_code warning.
+#[cfg_attr(not(feature = "z3-verify"), allow(dead_code))]
 fn is_adjacent(a: (u32, u32), b: (u32, u32)) -> bool {
     let dx = (a.0 as i32 - b.0 as i32).abs();
     let dy = (a.1 as i32 - b.1 as i32).abs();
