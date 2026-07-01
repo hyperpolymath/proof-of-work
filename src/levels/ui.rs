@@ -24,6 +24,16 @@ pub fn level_select_ui_system(
         return;
     };
 
+    // egui 0.35 panels render into a `Ui`, not a `Context`. Build a root viewport
+    // `Ui` covering the whole window and show all panels into it.
+    let mut viewport_ui = egui::Ui::new(
+        ctx.clone(),
+        "level_select_viewport".into(),
+        egui::UiBuilder::new()
+            .layer_id(egui::LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
+
     // Track actions to perform after UI rendering
     let mut select_pack: Option<usize> = None;
     let mut select_level: Option<usize> = None;
@@ -98,8 +108,25 @@ pub fn level_select_ui_system(
 
     let has_level_selected = pack_manager.current_level_index.is_some();
 
+    // Bottom panel with navigation (shown before the central panel so it reserves its space)
+    egui::Panel::bottom("level_select_nav").show(&mut viewport_ui, |ui| {
+        ui.horizontal_centered(|ui| {
+            if ui.button("Back to Menu").clicked() {
+                next_state.set(GameState::MainMenu);
+            }
+
+            ui.separator();
+
+            ui.label("Double-click a level to play");
+
+            ui.separator();
+
+            ui.label("ESC: Back");
+        });
+    });
+
     // Main panel
-    egui::CentralPanel::default().show(ctx, |ui| {
+    egui::CentralPanel::default().show(&mut viewport_ui, |ui| {
         ui.vertical_centered(|ui| {
             ui.add_space(20.0);
             ui.heading(egui::RichText::new("Level Select").size(36.0));
@@ -214,23 +241,6 @@ pub fn level_select_ui_system(
             } else {
                 columns[1].label("Select a pack to see levels");
             }
-        });
-    });
-
-    // Bottom panel with navigation
-    egui::TopBottomPanel::bottom("level_select_nav").show(ctx, |ui| {
-        ui.horizontal_centered(|ui| {
-            if ui.button("Back to Menu").clicked() {
-                next_state.set(GameState::MainMenu);
-            }
-
-            ui.separator();
-
-            ui.label("Double-click a level to play");
-
-            ui.separator();
-
-            ui.label("ESC: Back");
         });
     });
 

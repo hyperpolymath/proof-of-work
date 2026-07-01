@@ -10,7 +10,15 @@ use crate::states::GameState;
 pub fn main_menu_system(mut contexts: EguiContexts, mut next_state: ResMut<NextState<GameState>>) {
     let Ok(ctx) = contexts.ctx_mut() else { return };
 
-    egui::CentralPanel::default().show(ctx, |ui| {
+    let mut viewport_ui = egui::Ui::new(
+        ctx.clone(),
+        "main_menu_viewport".into(),
+        egui::UiBuilder::new()
+            .layer_id(egui::LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
+
+    egui::CentralPanel::default().show(&mut viewport_ui, |ui| {
         ui.vertical_centered(|ui| {
             ui.add_space(150.0);
 
@@ -104,8 +112,16 @@ pub fn update_hud(
 
     let Ok(ctx) = contexts.ctx_mut() else { return };
 
+    let mut viewport_ui = egui::Ui::new(
+        ctx.clone(),
+        "hud_viewport".into(),
+        egui::UiBuilder::new()
+            .layer_id(egui::LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
+
     // Top panel - level info
-    egui::TopBottomPanel::top("hud_top").show(ctx, |ui| {
+    egui::Panel::top("hud_top").show(&mut viewport_ui, |ui| {
         ui.horizontal(|ui| {
             if let Ok(level) = level_query.single() {
                 ui.heading(&level.0.name);
@@ -119,9 +135,9 @@ pub fn update_hud(
     });
 
     // Left panel - piece palette
-    egui::SidePanel::left("palette")
-        .min_width(150.0)
-        .show(ctx, |ui| {
+    egui::Panel::left("palette")
+        .min_size(150.0)
+        .show(&mut viewport_ui, |ui| {
             ui.heading("Pieces");
             ui.separator();
 
@@ -133,7 +149,7 @@ pub fn update_hud(
             if ui
                 .add_sized(
                     [130.0, 40.0],
-                    egui::SelectableLabel::new(
+                    egui::Button::selectable(
                         and_selected,
                         egui::RichText::new("AND Gate").size(16.0),
                     ),
@@ -152,7 +168,7 @@ pub fn update_hud(
             if ui
                 .add_sized(
                     [130.0, 40.0],
-                    egui::SelectableLabel::new(
+                    egui::Button::selectable(
                         or_selected,
                         egui::RichText::new("OR Gate").size(16.0),
                     ),
@@ -198,7 +214,7 @@ pub fn update_hud(
         });
 
     // Bottom panel - controls
-    egui::TopBottomPanel::bottom("controls").show(ctx, |ui| {
+    egui::Panel::bottom("controls").show(&mut viewport_ui, |ui| {
         ui.horizontal_centered(|ui| {
             ui.label("SPACE: Verify Solution");
             ui.separator();
@@ -221,7 +237,15 @@ pub fn show_completion_screen(
 ) {
     let Ok(ctx) = contexts.ctx_mut() else { return };
 
-    egui::CentralPanel::default().show(ctx, |ui| {
+    let mut viewport_ui = egui::Ui::new(
+        ctx.clone(),
+        "completion_viewport".into(),
+        egui::UiBuilder::new()
+            .layer_id(egui::LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
+
+    egui::CentralPanel::default().show(&mut viewport_ui, |ui| {
         ui.vertical_centered(|ui| {
             ui.add_space(150.0);
 
