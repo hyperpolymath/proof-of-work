@@ -106,8 +106,8 @@ pub enum VerificationVerdict {
 // See: src/abi/ProofOfWork/ABI/Invariants.idr I1
 #[cfg(feature = "z3-verify")]
 pub fn verify_level_solution(_level: &Level, pieces: &[LogicPiece]) -> VerificationVerdict {
-    use z3::Solver;
     use z3::ast::Bool;
+    use z3::Solver;
 
     let solver = Solver::new();
 

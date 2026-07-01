@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
-use z3::Solver;
 use z3::ast::Bool;
+use z3::Solver;
 
 use crate::game::Level;
 

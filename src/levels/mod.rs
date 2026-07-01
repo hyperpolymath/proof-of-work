@@ -151,7 +151,9 @@ pub enum LevelPackError {
     NotFound(String),
     /// Pack-level difficulty outside the documented 1..=5 range
     /// (I5 `DifficultyInRange`; see src/abi/ProofOfWork/ABI/Invariants.idr).
-    DifficultyOutOfRange { found: u8 },
+    DifficultyOutOfRange {
+        found: u8,
+    },
 }
 
 impl std::fmt::Display for LevelPackError {
@@ -564,7 +566,10 @@ mod tests {
     fn i5_in_range_rejects_zero() {
         match pack_with_difficulty(0).check_difficulty_in_range() {
             Err(LevelPackError::DifficultyOutOfRange { found: 0 }) => {}
-            other => panic!("expected DifficultyOutOfRange {{ found: 0 }}, got {:?}", other),
+            other => panic!(
+                "expected DifficultyOutOfRange {{ found: 0 }}, got {:?}",
+                other
+            ),
         }
     }
 
