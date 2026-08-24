@@ -1,10 +1,11 @@
-# proof-of-work site
+== proof-of-work site
 
-One-page project site built with [casket-ssg](https://github.com/hyperpolymath/polystack/tree/main/poly-ssg/casket-ssg).
+One-page project site built with
+https://github.com/hyperpolymath/polystack/tree/main/poly-ssg/casket-ssg[casket-ssg].
 
-## Structure
+=== Structure
 
-```
+....
 site/
 ├── content/
 │   └── index.md        Landing page (Markdown + YAML frontmatter)
@@ -13,16 +14,17 @@ site/
 ├── assets/
 │   └── style.css       Responsive dark/light CSS
 └── README.md           This file
-```
+....
 
-## Build
+=== Build
 
-```bash
+[source,bash]
+----
 cd site
 casket-ssg build
 # Output goes to _site/
-```
+----
 
-## Deploy
+=== Deploy
 
-Deploy the `_site/` directory to GitHub Pages or any static host.
+Deploy the `+_site/+` directory to GitHub Pages or any static host.
