@@ -121,7 +121,7 @@ Palimpsest License (PMPL-1.0-or-later) - See link:LICENSE[LICENSE] for details.
 
 == Contributing
 
-Contributions welcome! Please read link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] first.
+Contributions welcome! Please read link:.github/CONTRIBUTING.md[.github/CONTRIBUTING.md] first.
 
 == Related Projects
 
