@@ -51,7 +51,7 @@ jobs:
             archive: zip
 
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
@@ -60,7 +60,9 @@ jobs:
           sudo apt-get install -y libasound2-dev libudev-dev libxkbcommon-dev
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de  # master
+        with:
+          toolchain: master
         with:
           toolchain: stable
           targets: ${{ matrix.target }}
@@ -95,7 +97,7 @@ jobs:
           Compress-Archive -Path dist/* -DestinationPath proof-of-work-${{ github.ref_name }}-${{ matrix.target }}.${{ matrix.archive }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: proof-of-work-${{ matrix.target }}
           path: proof-of-work-*.${{ matrix.archive }}
@@ -110,10 +112,10 @@ jobs:
       attestations: write
 
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
           path: artifacts
 
@@ -124,7 +126,7 @@ jobs:
           cat ../SHA256SUMS.txt
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3.0.3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
           files: |
             artifacts/**/*
@@ -152,7 +154,7 @@ jobs:
             Build from source with `--features z3-verify` for full features.
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4.2.2
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
         with:
           subject-path: |
             artifacts/**/*
@@ -165,10 +167,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de  # master
         with:
           toolchain: stable
 
